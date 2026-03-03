@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-template",
+  "private": true,
+  "workspaces": [
+    "services/web",
+    "services/core"
+  ]
+}

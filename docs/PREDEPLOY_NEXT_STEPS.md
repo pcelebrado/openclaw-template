@@ -5,14 +5,15 @@ to deploy without committing secrets.
 
 ## Architecture (Free Plan)
 
-Two Railway services with a single 500MB persistent volume:
+Two Railway services with a single 500MB persistent volume.
+Railway auto-detects both from the npm workspace `package.json` at repo root.
 
-| Service | Root Directory | Public | Volume |
-|---------|---------------|--------|--------|
-| `web` | `services/web` | ✅ Yes | — |
-| `core` | `services/core` | ❌ No | `/data` (500MB) |
+| Service | Package Dir | Builder | Public | Volume |
+|---------|------------|---------|--------|--------|
+| `openclaw-web` | `services/web` | Dockerfile | ✅ Yes | — |
+| `openclaw-core` | `services/core` | Dockerfile | ❌ No | `/data` (500MB) |
 
-The `core` service runs OpenClaw, QMD, and an **embedded MongoDB** instance.
+The `core` service runs OpenClaw, QMD, embedded MongoDB, and SFTPGo.
 All persistent data shares the single Railway volume at `/data`.
 
 ## Secrets wiring map (Railway Variables)
@@ -69,37 +70,83 @@ Set these values in Railway Variables (service-level), not in git.
   - `BOOK_TOC_COLLECTION`
   - `BOOK_IMPORT_ENABLED`
   - `BOOK_IMPORT_DRY_RUN`
+- Embedded SFTPGo (auto-configured, credentials MUST be set in Railway Variables):
+  - `SFTPGO_ENABLED=true`
+  - `SFTPGO_DEFAULT_ADMIN_USERNAME` — **set in Railway dashboard**
+  - `SFTPGO_DEFAULT_ADMIN_PASSWORD` — **set in Railway dashboard**
+  - `SFTPGO_DATA_ROOT=/data/sftpgo`
+  - `SFTPGO_SFTPD__BINDINGS__0__PORT=2022`
+  - `SFTPGO_HTTPD__BINDINGS__0__PORT=2080`
 
 ## Deterministic next steps before deployment
 
-1. Create two services in Railway (`web`, `core`) with correct root directory paths.
-2. Disable Public Networking for `core`; keep Public Networking enabled only for `web`.
-3. Attach `/data` volume (500MB) to `core` before first deploy.
-4. Populate Railway Variables using the map above (no plaintext secrets in repo files).
-5. Deploy `core` first; it starts MongoDB automatically and initializes the replica set.
-6. Deploy `web`; verify `/api/health` plus internal connectivity checks.
-7. Confirm cross-service auth (`INTERNAL_SERVICE_TOKEN`) and gateway token consistency.
-8. Set book ingest mode (`BOOK_SOURCE_MODE`) and verify chosen source path.
-9. Run post-deploy smoke: `web /`, `web /api/health`, `core /healthz` (internal), book endpoints.
+### Step 0 — Import the repo (auto-detects services)
+
+1. Go to [railway.com/new](https://railway.com/new) → Deploy from GitHub repo.
+2. Select `pcelebrado/Book-of-Openclaw` (branch: `mvp`).
+3. Railway auto-detects the npm workspace monorepo and stages two services:
+   `openclaw-web` (from `services/web`) and `openclaw-core` (from `services/core`).
+4. Each service auto-inherits its `railway.toml` config (builder, healthcheck, watch paths, variables).
+
+### Step 1 — Dashboard configuration
+
+1. **Core service → Volumes**: Add volume with mount path `/data` (500MB).
+2. **Core service → Networking**: Enable TCP Proxy on port `2022` (for external SFTP access).
+3. **Core service → Networking**: Ensure NO public domain is generated (internal only).
+4. **Web service → Networking**: Generate a public domain (or add your custom domain).
+
+### Step 2 — Set secrets in Railway Variables
+
+5. Populate Railway Variables using the map above (no plaintext secrets in repo files).
+6. Most core config variables are pre-set via `railway.toml` `[variables]` section.
+   Only secrets (`INTERNAL_SERVICE_TOKEN`, `SETUP_PASSWORD`, `SFTPGO_DEFAULT_ADMIN_*`, `AUTH_SECRET`) need manual entry.
+
+### Step 3 — Deploy and verify
+
+7. Deploy `core` first; it starts MongoDB automatically (standalone, no replica set).
+8. Deploy `web`; verify `/api/health` plus internal connectivity checks.
+9. Confirm cross-service auth (`INTERNAL_SERVICE_TOKEN`) and gateway token consistency.
+10. Set book ingest mode (`BOOK_SOURCE_MODE`) and verify chosen source path.
+11. Run post-deploy smoke: `web /`, `web /api/health`, `core /setup/healthz` (internal), book endpoints.
 
 ## Volume budget (500MB free plan)
 
 | Path | Purpose | Estimated Size |
 |------|---------|---------------|
 | `/data/db` | MongoDB data files | ~50-200MB |
-| `/data/log` | MongoDB logs | ~5-10MB |
+| `/data/log` | MongoDB + SFTPGo logs | ~5-10MB |
 | `/data/.openclaw` | OpenClaw config, credentials, tokens | ~1MB |
 | `/data/workspace` | OpenClaw workspace (skills, plugins) | ~10-50MB |
 | `/data/book-source` | Staged book content for import | ~10-100MB |
 | `/data/npm`, `/data/pnpm` | Persistent tool installs | ~10-50MB |
-| **Total** | | **~100-400MB** |
+| `/data/sftpgo` | SFTPGo state, host keys, user DB | ~5-10MB |
+| **Total** | | **~100-420MB** |
 
 > Keep content imports small. For large books, import only the active sections.
-> MongoDB's WiredTiger cache is capped at 128MB RAM to leave room for Node.js.
+> MongoDB's WiredTiger cache is capped at 128MB RAM to leave room for Node.js + SFTPGo.
 
-## Optional integrations
+## SFTPGo (embedded in core)
 
-- SFTPGo scaffold is included in `services/sftpgo/` for SSH/SFTP file ingress.
-  On the free plan, SFTPGo would require the same volume — run it only if you
-  have a paid plan with multiple volumes.
+SFTPGo runs inside the core container for book content upload via SFTP.
+
+**Ports:**
+- SFTP: port `2022` — enable **TCP Proxy** in Railway dashboard → Settings → Networking
+- Web Admin: port `2080` — internal only (reachable via private networking or Railway shell)
+
+**Required Railway Variables (set in dashboard, not git):**
+- `SFTPGO_DEFAULT_ADMIN_USERNAME` — admin login for web UI
+- `SFTPGO_DEFAULT_ADMIN_PASSWORD` — strong password for admin
+
+**First-time setup:**
+1. Deploy the core service
+2. In Railway dashboard: core service → Settings → Networking → TCP Proxy → port `2022`
+3. Railway gives you `roundhouse.proxy.rlwy.net:XXXXX` — that's your SFTP endpoint
+4. Connect: `sftp -P XXXXX your-admin-user@roundhouse.proxy.rlwy.net`
+5. Upload book content to the home directory (maps to `/data/sftpgo/srv/`)
+6. Create an SFTPGo user via web admin (port 2080 internally) with home dir `/data/book-source`
+
+**Disable SFTPGo:** Set `SFTPGO_ENABLED=false` in Railway Variables.
+
+## Other integrations
+
 - QMD is consumed through OpenClaw core runtime behavior; data persists on the volume.

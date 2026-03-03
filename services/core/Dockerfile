@@ -1,23 +1,31 @@
-# OpenClaw Core Service Dockerfile
-# Consolidated: OpenClaw + MongoDB + QMD + SFTPGo wrapper
+# OpenClaw Core Service Dockerfile (MVP)
+# Consolidated: OpenClaw + MongoDB + QMD + SFTPGo — all in one container
 # All persistent data stored on a single Railway volume at /data (500MB free plan)
 #
 # Railway Configuration Notes:
 # - Requires a volume mounted at /data for persistence
 # - Healthchecks use /setup/healthz endpoint
 # - RAILWAY_RUN_UID=0 is set in railway.toml for volume permissions
+# - TCP Proxy must be enabled in Railway dashboard for SFTP (port 2022)
 #
 # Volume layout (/data):
 #   /data/db              — MongoDB data files
+#   /data/log             — MongoDB logs
 #   /data/.openclaw       — OpenClaw state and config
 #   /data/workspace       — OpenClaw workspace
 #   /data/npm             — Persistent npm global installs
 #   /data/pnpm            — Persistent pnpm binaries
 #   /data/book-source     — Book content staging (optional)
+#   /data/sftpgo          — SFTPGo state, host keys, user data
 # =============================================================================
 
 # =============================================================================
-# Stage 1: Build OpenClaw from source
+# Stage 1a: Pull SFTPGo binary from official image
+# =============================================================================
+FROM drakkan/sftpgo:v2.7.0-slim AS sftpgo-bin
+
+# =============================================================================
+# Stage 1b: Build OpenClaw from source
 # =============================================================================
 FROM node:22-bookworm AS openclaw-build
 
@@ -59,11 +67,16 @@ ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
 
 # =============================================================================
-# Stage 2: Runtime Image (Node.js + MongoDB consolidated)
+# Stage 2: Runtime Image (Node.js + MongoDB + SFTPGo consolidated)
 # =============================================================================
 FROM node:22-bookworm
 
 ENV NODE_ENV=production
+
+# Copy SFTPGo binary and default assets from the official image
+COPY --from=sftpgo-bin /usr/local/bin/sftpgo /usr/local/bin/sftpgo
+COPY --from=sftpgo-bin /srv/sftpgo /srv/sftpgo
+COPY --from=sftpgo-bin /var/lib/sftpgo /var/lib/sftpgo
 
 # Install MongoDB 7.0 community server (standalone, no replica set needed)
 # Uses the official MongoDB apt repository for Debian Bookworm
@@ -130,7 +143,9 @@ COPY scripts ./scripts
 # Healthcheck endpoint: /setup/healthz (configured in railway.toml)
 # =============================================================================
 
+# HTTP (OpenClaw wrapper) + SFTP (SFTPGo)
 EXPOSE 8080
+EXPOSE 2022
 
 # Ensure PID 1 reaps zombies and forwards signals.
 ENTRYPOINT ["tini", "--"]
