@@ -1,0 +1,508 @@
+{
+  "templateName": "OpenClaw Railway Template",
+  "version": "1.0.0",
+  "description": "A book-first MVP architecture providing a calm, editorial learning environment with AI-assisted study tools deployed on Railway.",
+  "lastUpdated": "2026-03-03",
+  "features": [
+    {
+      "id": "service-architecture",
+      "title": "Three-Service Architecture",
+      "category": "Infrastructure",
+      "priority": "critical",
+      "descriptions": [
+        "The OpenClaw template implements a clean three-service architecture designed for Railway deployment: a public-facing Next.js web application, an internal core service running OpenClaw/QMD/SFTPGo, and an internal MongoDB database.",
+        "This architecture enforces a strict security boundary where only the web service is publicly exposed. All browser traffic flows through Next.js, which then makes authenticated internal calls to the core service and MongoDB.",
+        "The design supports Railway's sleep/scale-to-zero patterns while maintaining a responsive user experience through graceful degradation and clear status communication."
+      ],
+      "howItsUsed": [
+        "Users interact with the book content through the Next.js web interface at the public URL",
+        "The web service handles all authentication, session management, and serves the Book-first UI",
+        "When AI assistance is needed, the web service makes internal API calls to the core service",
+        "Search functionality routes through the web service to QMD (Query Markup Database) in the core container",
+        "File uploads and administrative tasks can optionally use the SFTPGo component within the core service",
+        "All persistent data is stored in MongoDB, accessed only by the web service (and optionally core)",
+        "The architecture allows the core service to sleep during periods of inactivity while the web remains responsive"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Create Railway services from the monorepo",
+          "details": "Set up four services: 'web' (services/web), 'core' (services/core), 'mongo' (services/mongo/nodes), and optionally 'sftpgo' (services/sftpgo)"
+        },
+        {
+          "step": 2,
+          "action": "Configure public networking",
+          "details": "Enable public network only on the 'web' service. Keep 'core', 'mongo', and 'sftpgo' internal-only"
+        },
+        {
+          "step": 3,
+          "action": "Set environment variables for web service",
+          "details": "Configure MONGODB_URI, INTERNAL_CORE_BASE_URL, INTERNAL_SERVICE_TOKEN or INTERNAL_JWT_SIGNING_KEYS, AUTH_SECRET, and AUTH_URL"
+        },
+        {
+          "step": 4,
+          "action": "Set environment variables for core service",
+          "details": "Configure INTERNAL_SERVICE_TOKEN (must match web), SETUP_PASSWORD, OPENCLAW_STATE_DIR, OPENCLAW_WORKSPACE_DIR, OPENCLAW_GATEWAY_TOKEN"
+        },
+        {
+          "step": 5,
+          "action": "Set environment variables for MongoDB",
+          "details": "Configure REPLICA_SET_NAME, MONGO_INITDB_ROOT_USERNAME, MONGO_INITDB_ROOT_PASSWORD, KEYFILE"
+        },
+        {
+          "step": 6,
+          "action": "Configure volumes",
+          "details": "Add /data volume to core service for persistence. Optional /data volume for sftpgo if used"
+        },
+        {
+          "step": 7,
+          "action": "Verify internal networking",
+          "details": "Ensure services can communicate via Railway internal DNS: web.railway.internal, core.railway.internal, mongo.railway.internal"
+        }
+      ],
+      "sourceSpecs": ["01-SPEC_RAILWAY_ARCHITECTURE.md", "02-SPEC_NETWORKING_SECURITY.md", "10-SPEC_CORE_CONTAINER_STARTUP.md"],
+      "relatedFeatures": ["internal-service-auth", "sleep-scale-to-zero", "mongodb-data-layer"]
+    },
+    {
+      "id": "book-first-ui",
+      "title": "Book-First UI System",
+      "category": "User Interface",
+      "priority": "critical",
+      "descriptions": [
+        "The Book-first UI implements a 'Calm Research UI' pattern prioritizing reading, retention, and recall over trading execution. It features a stable three-column sacred shell layout that remains consistent across all book-related pages.",
+        "The design philosophy emphasizes editorial-first typography, calm density, quiet chrome with minimal borders, restrained color usage, and no empty pages. Every state has purpose and a next action.",
+        "The UI includes six required pages: Library (book index), Reader (section view), Notes (filterable collection), Playbooks (draft to published lifecycle), Admin (status and reindex), and Login (secure authentication)."
+      ],
+      "howItsUsed": [
+        "Readers navigate through the book using the Left Rail TOC Tree showing Parts, Chapters, and Sections with progress indicators",
+        "The Center Content area displays section content with structured blocks: TL;DR (up to 3 bullets), Checklist (up to 5 items), Common Mistakes (up to 3), and Drill (1 exercise)",
+        "The Right Rail Agent Panel provides AI-assisted study tools including Explain/Rephrase, Socratic Tutor, Flashcards/Quiz, Checklist Builder, Scenario Tree Builder, and Notes Assistant",
+        "Users create highlights by selecting text in the Reader, which triggers a floating toolbar with Highlight, Add Note, and Copy options",
+        "The Command Palette (Cmd+K) provides quick access to search, navigation, note creation, and admin functions",
+        "Responsive adaptation provides full 3-column layout on large screens, 2-column with drawers on medium screens, and mobile-optimized sheets on small screens",
+        "Notes and highlights are linked to specific sections and anchors, creating a personal knowledge graph"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Configure book content source",
+          "details": "Set BOOK_SOURCE_MODE (manifest or directory), BOOK_SOURCE_DIR, BOOK_IMPORT_MANIFEST, BOOK_CANONICAL_COLLECTION, BOOK_TOC_COLLECTION"
+        },
+        {
+          "step": 2,
+          "action": "Enable/disable book import",
+          "details": "Set BOOK_IMPORT_ENABLED to true/false and BOOK_IMPORT_DRY_RUN to test imports without writing to database"
+        },
+        {
+          "step": 3,
+          "action": "Customize UI components",
+          "details": "Modify components in services/web/src/components/ using shadcn/ui patterns. Key components include TOC tree, Reader blocks, Agent panel, and Command palette"
+        },
+        {
+          "step": 4,
+          "action": "Configure responsive breakpoints",
+          "details": "Default breakpoints: ≥1536px (2xl) full 3-column, ≥1280px (xl) 2-column + drawer, ≥1024px (lg) 1-column + drawers, <1024px mobile sheets"
+        },
+        {
+          "step": 5,
+          "action": "Set up keyboard shortcuts",
+          "details": "Default shortcuts: Cmd+K (Command palette), 'n' (New note in Reader), 'b' (Toggle bookmark), '?' (Shortcut help)"
+        },
+        {
+          "step": 6,
+          "action": "Configure agent skills availability",
+          "details": "Control which skills appear in the Agent Panel: explain, socratic, flashcards, checklist, scenario_tree, notes_assist"
+        }
+      ],
+      "sourceSpecs": ["06-SPEC_UI_LAYOUTS.md", "04-TECHP_DESIGN_SYSTEM.md", "05-TECHP_STYLE_GUIDE.md", "12-SPEC_RESPONSIVE_LAYOUT.md"],
+      "relatedFeatures": ["agent-skills", "mongodb-data-layer"]
+    },
+    {
+      "id": "mongodb-data-layer",
+      "title": "MongoDB Data Layer",
+      "category": "Data Storage",
+      "priority": "critical",
+      "descriptions": [
+        "The MongoDB schema supports the Book-first MVP with collections for book content (sections and TOC), user-generated content (notes, highlights, bookmarks, reading progress), playbooks (draft to published), agent run history, and audit logging.",
+        "The schema uses MongoDB ObjectIds for identifiers, ISO date timestamps, and section slugs as canonical identifiers. It supports draft/published workflows and optional versioning.",
+        "Indexes are carefully designed to support the primary read patterns: Library TOC loading, Reader section fetching, per-user notes/highlights, and playbook management."
+      ],
+      "howItsUsed": [
+        "Book sections are stored in the book_sections collection with slug-based lookup, hierarchical part/chapter/section structure, markdown body, frontmatter metadata, and heading anchors",
+        "The book_toc collection provides a cached TOC tree for fast Library rendering without aggregating sections on every request",
+        "User notes in the notes collection link to sections via sectionSlug and optionally anchorId, supporting text selection ranges and tags",
+        "Highlights store text ranges with optional color coding and can link to notes via noteId",
+        "Bookmarks provide quick save points with unique constraints per user/section/anchor combination",
+        "Reading progress tracks completion percentage and last position for the 'Continue reading' feature",
+        "Playbooks store draft and published trading procedures with triggers, checklists, scenario trees, and linked sections",
+        "Agent runs are logged for audit and replay, storing skill type, context, output, and saved references",
+        "The audit_log collection tracks admin actions, indexing operations, config changes, and security events"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Configure MongoDB connection",
+          "details": "Set MONGODB_URI in web service (e.g., mongodb://mongo.railway.internal:27017/natealma)"
+        },
+        {
+          "step": 2,
+          "action": "Set up replica set authentication",
+          "details": "Configure MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD for MongoDB service"
+        },
+        {
+          "step": 3,
+          "action": "Configure collection names",
+          "details": "Set BOOK_CANONICAL_COLLECTION (default: book_sections) and BOOK_TOC_COLLECTION (default: book_toc)"
+        },
+        {
+          "step": 4,
+          "action": "Enable text search fallback",
+          "details": "Optional: Create text index on bodyMarkdown and titles for MongoDB fallback search when QMD is unavailable"
+        },
+        {
+          "step": 5,
+          "action": "Configure TTL indexes",
+          "details": "Set up TTL indexes for rate limiting (2 hours) and agent run history retention as needed"
+        },
+        {
+          "step": 6,
+          "action": "Set up backup strategy",
+          "details": "Implement scheduled logical dumps or use Railway's managed backup features"
+        }
+      ],
+      "sourceSpecs": ["03-SPEC_MONGO_SCHEMA.md", "11-SPEC_MONGODB_POOLING.md", "15-SPEC_MONGODB_SECURITY.md"],
+      "relatedFeatures": ["service-architecture", "book-first-ui", "security-rate-limiting"]
+    },
+    {
+      "id": "internal-service-auth",
+      "title": "Internal Service Authentication",
+      "category": "Security",
+      "priority": "critical",
+      "descriptions": [
+        "Internal service authentication secures communication between the web service and core service using short-lived signed JWTs. This ensures that even though core is internal-only, it does not rely on network secrecy for security.",
+        "The JWT implementation uses HS256 algorithm with dual-key rotation support, allowing seamless key updates without service interruption. Tokens have a short 5-15 minute TTL for security.",
+        "All internal endpoints require valid JWTs with proper audience (aud: 'core'), issuer (iss: 'web'), and expiration validation."
+      ],
+      "howItsUsed": [
+        "When the web service needs to call core (for search, agent skills, or indexing), it generates a signed JWT with the current active key",
+        "The JWT includes claims for issuer, audience, subject, issued-at, expiration, and a unique token ID (jti)",
+        "Optional claims include user ID (uid) for per-user rate limiting, role for authorization, and request ID (rid) for tracing",
+        "The web service includes the JWT in the Authorization header: 'Bearer <jwt>' along with X-Request-Id for correlation",
+        "Core validates the JWT signature, checks expiration, verifies aud/iss claims, and extracts user context for authorization decisions",
+        "Admin-only endpoints (like reindex) require role=admin claim in the JWT",
+        "Key rotation uses a dual-key strategy: web signs with the new active key while core accepts both old and new keys during transition"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Generate signing keys",
+          "details": "Create random secrets for JWT signing. Use cryptographically secure random generation (e.g., openssl rand -base64 32)"
+        },
+        {
+          "step": 2,
+          "action": "Configure web service keys",
+          "details": "Set INTERNAL_JWT_SIGNING_KEYS as JSON array: [{\"kid\":\"k1\",\"secret\":\"<random>\",\"active\":true}]"
+        },
+        {
+          "step": 3,
+          "action": "Configure core service verification keys",
+          "details": "Set INTERNAL_JWT_VERIFY_KEYS with the same JSON array in core service environment"
+        },
+        {
+          "step": 4,
+          "action": "Set token TTL",
+          "details": "Configure JWT expiration between 5-15 minutes (default recommended: 10 minutes)"
+        },
+        {
+          "step": 5,
+          "action": "Implement key rotation procedure",
+          "details": "1) Add new key to both services, 2) Deploy core, 3) Deploy web (activates new key), 4) Wait 24-72 hours, 5) Remove old key"
+        },
+        {
+          "step": 6,
+          "action": "Enable audit logging",
+          "details": "Configure web service to log auth failures to audit_log collection with rate limiting to prevent log spam"
+        }
+      ],
+      "sourceSpecs": ["14-SPEC_INTERNAL_SERVICE_AUTH.md", "09-SPEC_ENDPOINT_CONTRACT.md"],
+      "relatedFeatures": ["service-architecture", "security-rate-limiting"]
+    },
+    {
+      "id": "agent-skills",
+      "title": "Agent Skills & AI Integration",
+      "category": "Artificial Intelligence",
+      "priority": "high",
+      "descriptions": [
+        "The Agent Skills system provides AI-assisted study tools through the right rail Agent Panel. Six core skills help users understand, retain, and apply book content: Explain/Rephrase, Socratic Tutor, Flashcards/Quiz, Checklist Builder, Scenario Tree Builder, and Notes Assistant.",
+        "Each skill is context-aware, receiving the current section content, selected text, and user preferences to generate relevant outputs. Skills can save results as notes or playbook drafts.",
+        "The system is designed with graceful degradation: when the core service is unavailable, the UI shows clear status messages and allows users to continue reading uninterrupted."
+      ],
+      "howItsUsed": [
+        "Explain/Rephrase offers three modes: Simple (plain language explanation), Technical (precise terminology), and Analogy (relatable comparisons)",
+        "Socratic Tutor generates 3-5 questions to test understanding of the current section, encouraging active recall",
+        "Flashcards/Quiz creates 5-10 Q&A pairs suitable for spaced repetition study",
+        "Checklist Builder generates pre/during/post trade checklists based on section content",
+        "Scenario Tree Builder creates If/Then decision trees that can be saved as playbook drafts",
+        "Notes Assistant helps create, tag, and link notes to sections with AI-generated suggestions",
+        "Users select text in the Reader and invoke skills via the Agent Panel or keyboard shortcuts",
+        "Skill outputs include Copy, Save as Note, and Save as Playbook Draft actions",
+        "Agent runs are logged to the agent_runs collection for audit and replay capabilities"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Configure core service endpoints",
+          "details": "Ensure core service exposes POST /internal/agent/run endpoint with proper authentication"
+        },
+        {
+          "step": 2,
+          "action": "Set up skill definitions",
+          "details": "Configure available skills in web service: explain, socratic, flashcards, checklist, scenario_tree, notes_assist"
+        },
+        {
+          "step": 3,
+          "action": "Configure rate limits",
+          "details": "Set agent skill limits: 10 per minute per user, 100 per hour per user (adjustable in rate limiting config)"
+        },
+        {
+          "step": 4,
+          "action": "Set up output templates",
+          "details": "Configure response formats for each skill type: text, qa, cards, checklist, tree"
+        },
+        {
+          "step": 5,
+          "action": "Enable save suggestions",
+          "details": "Configure which skills suggest saving to notes vs playbook drafts based on output type"
+        },
+        {
+          "step": 6,
+          "action": "Configure fallback behavior",
+          "details": "Set up MongoDB text search as fallback when QMD semantic search is unavailable"
+        }
+      ],
+      "sourceSpecs": ["06-SPEC_UI_LAYOUTS.md", "09-SPEC_ENDPOINT_CONTRACT.md", "03-SPEC_MONGO_SCHEMA.md"],
+      "relatedFeatures": ["book-first-ui", "internal-service-auth", "sleep-scale-to-zero"]
+    },
+    {
+      "id": "security-rate-limiting",
+      "title": "Security & Rate Limiting",
+      "category": "Security",
+      "priority": "critical",
+      "descriptions": [
+        "The security layer implements defense in depth with authentication, rate limiting, and audit logging. Rate limits prevent abuse and accidental loops while preserving the calm UX with clear, non-accusatory error messages.",
+        "MongoDB-backed counters with TTL ensure rate limits survive process restarts and work under Railway's sleep/scale-to-zero constraints.",
+        "All security events are logged with correlation IDs for traceability and debugging."
+      ],
+      "howItsUsed": [
+        "Login endpoints enforce 5 attempts per 15 minutes per IP with lockout messaging",
+        "Agent skills are limited to 10 per minute and 100 per hour per user to prevent API abuse",
+        "Search endpoints allow 30 requests per minute per user with caching for repeated queries",
+        "Admin actions (reindex, publish, import) are throttled to 5 per minute per admin user",
+        "Rate limit responses include 429 status, error code, human-readable message, and Retry-After header",
+        "Failed authentication attempts are logged to the audit_log collection with IP and timestamp",
+        "CORS is locked down to the web domain only, preventing cross-origin attacks",
+        "Service-to-service authentication uses short-lived JWTs with mandatory validation"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Set up rate limit collection",
+          "details": "Create rate_limits collection in MongoDB with fields: key, windowStart, count, createdAt"
+        },
+        {
+          "step": 2,
+          "action": "Configure TTL index",
+          "details": "Create TTL index on createdAt field with 2-hour expiration for automatic cleanup"
+        },
+        {
+          "step": 3,
+          "action": "Set rate limit keys",
+          "details": "Configure key patterns: login:ip:{ip}, agent:user:{userId}, search:user:{userId}, admin:user:{userId}"
+        },
+        {
+          "step": 4,
+          "action": "Adjust rate limit thresholds",
+          "details": "Modify default limits in code or environment: login (5/15min), agent (10/min, 100/hr), search (30/min), admin (5/min)"
+        },
+        {
+          "step": 5,
+          "action": "Configure CORS",
+          "details": "Set allowed origins to web domain only in web service configuration"
+        },
+        {
+          "step": 6,
+          "action": "Enable audit logging",
+          "details": "Configure audit_log collection and ensure all admin actions, auth failures, and agent runs are logged"
+        }
+      ],
+      "sourceSpecs": ["16-SPEC_RATE_LIMITING.md", "15-SPEC_MONGODB_SECURITY.md", "17-SPEC_SECURITY_MONITORING.md", "02-SPEC_NETWORKING_SECURITY.md"],
+      "relatedFeatures": ["internal-service-auth", "mongodb-data-layer", "service-architecture"]
+    },
+    {
+      "id": "sleep-scale-to-zero",
+      "title": "Sleep/Scale-to-Zero UX",
+      "category": "User Experience",
+      "priority": "high",
+      "descriptions": [
+        "The Sleep/Scale-to-Zero UX pattern handles periods when the core service is sleeping or unreachable due to Railway's scale-to-zero behavior. The design ensures no silent failures while maintaining a calm, editorial experience.",
+        "When core is unavailable, the UI transitions through 'Waking' and 'Unavailable' states with clear messaging, retry options, and the ability to continue reading uninterrupted.",
+        "The pattern includes telemetry logging to help tune sleep timeouts and detect recurring availability issues."
+      ],
+      "howItsUsed": [
+        "The web service detects core unavailability via request timeouts (5-8 seconds), 502/503 errors, or failed health checks",
+        "Agent Panel shows 'Waking' state with message 'Waking assistant... This can take a few seconds after inactivity' and a Retry button",
+        "If core doesn't respond after timeout, the UI shows 'Unavailable' state with 'Assistant temporarily unavailable. Try again in a moment'",
+        "Users can always continue reading book content even when the agent is unavailable",
+        "Search falls back to MongoDB text search when QMD is unavailable, or shows 'Search is waking up' with retry option",
+        "Admin reindex shows explicit error 'Core service is asleep/unreachable' with 'Wake and retry' CTA and last run details",
+        "Optional auto-retry occurs once after 2 seconds, then requires user-initiated retry",
+        "Telemetry logs track core_unavailable events, time-to-first-success after waking, and retry attempts"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Set request timeout",
+          "details": "Configure 5-8 second timeout for core service requests (recommended: 8 seconds)"
+        },
+        {
+          "step": 2,
+          "action": "Configure health check interval",
+          "details": "Set health check polling frequency to detect core availability changes"
+        },
+        {
+          "step": 3,
+          "action": "Enable fallback search",
+          "details": "Configure MongoDB text search as fallback when QMD semantic search is unavailable"
+        },
+        {
+          "step": 4,
+          "action": "Customize status messages",
+          "details": "Modify waking/unavailable messages in UI components to match your tone"
+        },
+        {
+          "step": 5,
+          "action": "Configure auto-retry",
+          "details": "Enable optional auto-retry once after 2 seconds (disabled by default)"
+        },
+        {
+          "step": 6,
+          "action": "Set up telemetry logging",
+          "details": "Configure logging of core_unavailable events and time-to-first-success metrics"
+        }
+      ],
+      "sourceSpecs": ["13-SPEC_SLEEP_SCALE_TO_ZERO_UX.md", "01-SPEC_RAILWAY_ARCHITECTURE.md"],
+      "relatedFeatures": ["service-architecture", "agent-skills", "book-first-ui"]
+    },
+    {
+      "id": "operations-deployment",
+      "title": "Operations & Deployment",
+      "category": "DevOps",
+      "priority": "high",
+      "descriptions": [
+        "The operations layer provides deterministic workflows for maintaining the OpenClaw deployment via SSH control plane. It follows a strict command lifecycle: Probe, State, Snapshot, Mutate, Verify, Record, Learn.",
+        "The core container uses s6-overlay as a process supervisor to manage OpenClaw, QMD, and SFTPGo with proper startup sequencing, health checks, and graceful shutdown.",
+        "Traceability is enforced through correlation IDs, severity markers (INFO, WARN, ERROR, RISK), and continuity checkpoints that survive session interruptions."
+      ],
+      "howItsUsed": [
+        "Operators use the openclaw CLI for deployment tasks: openclaw --version, openclaw status, openclaw doctor",
+        "The startup sequence initializes configs, validates environment variables, starts QMD (waits for health), starts OpenClaw (waits for health), then starts SFTPGo",
+        "Health endpoints provide aggregate status: GET /internal/health returns { ok, components: { qmd, agent, sftpgo } }",
+        "Reindex operations are jobs with startedAt, state, progress, and error tracking. They are idempotent and safe to retry",
+        "Gateway lock handling probes existing gateways before restart to avoid unnecessary service interruption",
+        "Validation gates ensure openclaw --version, openclaw status, openclaw doctor, and /setup/api/status all pass before considering deployment complete",
+        "Audit logs track all admin actions with trace IDs for failure traceability",
+        "Continuity checkpoints at ../srv/state/continuity.json preserve session state across interruptions"
+      ],
+      "howToConfigure": [
+        {
+          "step": 1,
+          "action": "Configure core service ports",
+          "details": "Set ports for QMD (default: 7100), OpenClaw (default: 7200), SFTPGo (default: 7300), optional aggregate health (default: 7000)"
+        },
+        {
+          "step": 2,
+          "action": "Set up s6-overlay",
+          "details": "Configure process supervisor in core Dockerfile with restart policies per process"
+        },
+        {
+          "step": 3,
+          "action": "Configure startup timeouts",
+          "details": "Set QMD health timeout (default: 60 seconds). Mark degraded but continue booting if exceeded"
+        },
+        {
+          "step": 4,
+          "action": "Set up log directories",
+          "details": "Configure log root at ../srv/logs with proper permissions"
+        },
+        {
+          "step": 5,
+          "action": "Configure continuity checkpointing",
+          "details": "Set continuity checkpoint path at ../srv/state/continuity.json with required fields: traceId, tool, phase, status, details, updatedAtUtc"
+        },
+        {
+          "step": 6,
+          "action": "Set up validation endpoints",
+          "details": "Ensure /setup/api/status returns configured:true and /setup/api/debug returns healthy diagnostics"
+        },
+        {
+          "step": 7,
+          "action": "Configure Railway deployment",
+          "details": "Set restartPolicyType to ON_FAILURE with maxRetries: 10 in railway.json"
+        }
+      ],
+      "sourceSpecs": ["18-SPEC_OPERATIONS_CONTROL_PLANE.md", "10-SPEC_CORE_CONTAINER_STARTUP.md", "19-SPEC_DELIVERABLE_GOVERNANCE.md", "20-SPEC_FULL_SCOPE_DELIVERY_PLAN.md", "21-SPEC_OPENCLAW_RAILWAY_INCIDENT_SOLUTIONS.md"],
+      "relatedFeatures": ["service-architecture", "internal-service-auth"]
+    }
+  ],
+  "apiEndpoints": {
+    "public": [
+      {"method": "GET", "path": "/api/book/toc", "description": "Table of contents"},
+      {"method": "GET", "path": "/api/book/section?slug=...", "description": "Section content"},
+      {"method": "GET", "path": "/api/book/search?q=...", "description": "Semantic search"},
+      {"method": "POST", "path": "/api/notes", "description": "Create note"},
+      {"method": "GET", "path": "/api/notes", "description": "List notes"},
+      {"method": "POST", "path": "/api/highlights", "description": "Create highlight"},
+      {"method": "POST", "path": "/api/bookmarks/toggle", "description": "Toggle bookmark"},
+      {"method": "POST", "path": "/api/progress", "description": "Update reading progress"},
+      {"method": "POST", "path": "/api/agent/skill", "description": "Run agent skill"},
+      {"method": "GET", "path": "/api/admin/status", "description": "System status (admin)"},
+      {"method": "POST", "path": "/api/admin/book/reindex", "description": "Trigger reindex (admin)"}
+    ],
+    "internal": [
+      {"method": "POST", "path": "/internal/search", "description": "QMD semantic search"},
+      {"method": "POST", "path": "/internal/agent/run", "description": "Execute agent skill"},
+      {"method": "POST", "path": "/internal/index/rebuild", "description": "Rebuild search index"},
+      {"method": "GET", "path": "/internal/index/status?jobId=...", "description": "Index job status"},
+      {"method": "GET", "path": "/internal/health", "description": "Health check"}
+    ]
+  },
+  "environmentVariables": {
+    "web": [
+      {"name": "MONGODB_URI", "required": true, "description": "MongoDB connection string"},
+      {"name": "INTERNAL_CORE_BASE_URL", "required": true, "description": "Internal URL for core service"},
+      {"name": "INTERNAL_SERVICE_TOKEN", "required": false, "description": "Shared secret (fallback auth)"},
+      {"name": "INTERNAL_JWT_SIGNING_KEYS", "required": false, "description": "JSON array of JWT signing keys"},
+      {"name": "AUTH_SECRET", "required": true, "description": "NextAuth secret"},
+      {"name": "AUTH_URL", "required": true, "description": "Auth callback URL"},
+      {"name": "NEXT_PUBLIC_APP_URL", "required": true, "description": "Public app URL"},
+      {"name": "BOOK_SOURCE_MODE", "required": false, "description": "manifest or directory"},
+      {"name": "BOOK_SOURCE_DIR", "required": false, "description": "Path to book content"},
+      {"name": "BOOK_IMPORT_ENABLED", "required": false, "description": "Enable book import"},
+      {"name": "BOOK_IMPORT_DRY_RUN", "required": false, "description": "Test import without writing"}
+    ],
+    "core": [
+      {"name": "INTERNAL_SERVICE_TOKEN", "required": false, "description": "Must match web service"},
+      {"name": "INTERNAL_JWT_VERIFY_KEYS", "required": false, "description": "JSON array of JWT verification keys"},
+      {"name": "SETUP_PASSWORD", "required": true, "description": "Secure setup password"},
+      {"name": "OPENCLAW_STATE_DIR", "required": true, "description": "State directory path"},
+      {"name": "OPENCLAW_WORKSPACE_DIR", "required": true, "description": "Workspace directory path"},
+      {"name": "OPENCLAW_GATEWAY_TOKEN", "required": true, "description": "Gateway token"}
+    ],
+    "mongo": [
+      {"name": "REPLICA_SET_NAME", "required": true, "description": "MongoDB replica set name"},
+      {"name": "MONGO_INITDB_ROOT_USERNAME", "required": true, "description": "Root username"},
+      {"name": "MONGO_INITDB_ROOT_PASSWORD", "required": true, "description": "Root password"},
+      {"name": "KEYFILE", "required": true, "description": "Path to keyfile"}
+    ]
+  }
+}
