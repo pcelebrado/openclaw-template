@@ -1,4 +1,17 @@
-# Build openclaw from source to avoid npm packaging gaps (some dist files are not shipped).
+# OpenClaw Core Service Dockerfile
+# Multi-stage build with OpenClaw runtime and wrapper service
+# INTERNAL-ONLY SERVICE - No public HTTP exposure
+# 
+# Railway Configuration Notes:
+# - This service MUST have Public Networking DISABLED in Railway settings
+# - Requires a volume mounted at /data for persistence
+# - Healthchecks use /setup/healthz endpoint
+# - RAILWAY_RUN_UID=0 is set in railway.toml for volume permissions
+# =============================================================================
+
+# =============================================================================
+# Stage 1: Build OpenClaw from source
+# =============================================================================
 FROM node:22-bookworm AS openclaw-build
 
 # Dependencies needed for openclaw build
@@ -38,11 +51,14 @@ RUN pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
 
-
-# Runtime image
+# =============================================================================
+# Stage 2: Runtime Image
+# =============================================================================
 FROM node:22-bookworm
+
 ENV NODE_ENV=production
 
+# Install runtime dependencies
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -78,10 +94,15 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"'
 
 COPY src ./src
 
-# The wrapper listens on $PORT.
+# =============================================================================
+# Railway Port Configuration
+# =============================================================================
 # IMPORTANT: Do not set a default PORT here.
 # Railway injects PORT at runtime and routes traffic to that port.
-# If we force a different port, deployments can come up but the domain will route elsewhere.
+# The service should listen on 0.0.0.0:$PORT or ::$PORT for healthchecks.
+# Healthcheck endpoint: /setup/healthz (configured in railway.toml)
+# =============================================================================
+
 EXPOSE 8080
 
 # Ensure PID 1 reaps zombies and forwards signals.

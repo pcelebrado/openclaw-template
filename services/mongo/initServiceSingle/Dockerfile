@@ -1,5 +1,5 @@
-# Base image
-FROM mongo:latest
+# Base image — pinned to match the primary mongo:7 node
+FROM mongo:7
 
 # Install curl
 RUN apt-get update && apt-get install -y curl

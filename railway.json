@@ -3,11 +3,14 @@
   "build": {
     "builder": "DOCKERFILE",
     "watchPatterns": [
-      "README.md",
       "railway.json",
       "services/web/**",
       "services/core/**",
-      "services/mongo/**"
+      "services/mongo/**",
+      "services/sftpgo/**",
+      "!**/*.test.ts",
+      "!**/*.test.tsx",
+      "!**/node_modules/**"
     ]
   },
   "deploy": {

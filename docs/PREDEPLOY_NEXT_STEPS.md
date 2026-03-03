@@ -5,7 +5,6 @@ to deploy without committing secrets.
 
 ## Scope audited
 
-- Template repo: `services/web`, `services/core`, `services/mongo`, root Railway config.
 - Template repo: `services/web`, `services/core`, `services/mongo`, `services/sftpgo`, root Railway config.
 - External specs assimilated:
   - `ExternalDocs/railway-mongodb`
@@ -121,5 +120,5 @@ Set these values in Railway Variables (workspace-level or service-level), not in
 
 ## Optional integrations from assimilated specs
 
-- SFTPGo can back `BOOK_SOURCE_MODE=sftp`, but this template does not yet include an in-repo SFTPGo service scaffold.
+- SFTPGo service scaffold is included in `services/sftpgo/` and can back `BOOK_SOURCE_MODE=sftp`.
 - QMD is consumed through OpenClaw core runtime behavior; keep core volume persistence and startup health checks in place.

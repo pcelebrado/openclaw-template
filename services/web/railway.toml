@@ -15,3 +15,8 @@ restartPolicyType = "on_failure"
 
 [variables]
 NEXT_TELEMETRY_DISABLED = "1"
+
+# Hostname binding for IPv4/IPv6 dual-stack support.
+# Railway private networking supports both IPv4 and IPv6 (new environments)
+# and IPv6-only (legacy environments). Binding to :: ensures compatibility.
+HOSTNAME = "::"

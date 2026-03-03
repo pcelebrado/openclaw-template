@@ -1,0 +1,32 @@
+# =============================================================================
+# SFTPGo Service - Railway Configuration
+# OPTIONAL SERVICE - File upload interface
+# Monorepo path contract: service root directory must be `services/sftpgo`.
+# =============================================================================
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+healthcheckPath = "/healthz"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+requiredMountPath = "/data"
+
+[variables]
+SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN = "true"
+SFTPGO_HTTPD__BINDINGS__0__PORT = "8080"
+SFTPGO_SFTPD__BINDINGS__0__PORT = "2022"
+SFTPGO_SFTPD__BINDINGS__0__ADDRESS = ""
+SFTPGO_DATA_ROOT = "/data/sftpgo"
+
+# =============================================================================
+# SECURITY WARNING
+# =============================================================================
+# You MUST set these in Railway dashboard (not in this file):
+# 
+# SFTPGO_DEFAULT_ADMIN_USERNAME - Admin username for web UI
+# SFTPGO_DEFAULT_ADMIN_PASSWORD - Strong password for admin account
+#
+# NEVER commit real credentials to git.
+# =============================================================================

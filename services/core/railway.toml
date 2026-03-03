@@ -22,10 +22,14 @@ requiredMountPath = "/data"
 
 [variables]
 # NOTE: Railway injects PORT automatically.
-# Do not set PORT here; Railway templates may not apply it reliably and hardcoding
-# can cause domain routing mismatches.
+# The service should listen on 0.0.0.0:$PORT or ::$PORT for healthchecks to work.
+# Do not hardcode PORT here to avoid domain routing mismatches.
 OPENCLAW_STATE_DIR = "/data/.openclaw"
 OPENCLAW_WORKSPACE_DIR = "/data/workspace"
+
+# Volume permissions: volumes are mounted as root, so non-root containers
+# need this to access the volume properly.
+RAILWAY_RUN_UID = "0"
 
 # Internal service auth token.
 # Must match the value set on the web service as INTERNAL_SERVICE_TOKEN.

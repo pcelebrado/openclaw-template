@@ -1,0 +1,19 @@
+# Force LF line endings for files that run inside Linux containers.
+# Without this, Windows git may convert to CRLF and break shell scripts.
+*.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+
+# Keep JSON/TOML/YAML consistent
+*.json text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Mark binary files
+*.jpg binary
+*.png binary
+*.svg binary
+*.ico binary
+*.tar.gz binary

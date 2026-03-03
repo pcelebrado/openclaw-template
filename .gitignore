@@ -22,3 +22,14 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
+
+# Dev seed scripts (may contain test credentials)
+seed-*.mjs
+seed-*.js
+
+# Marketing/screenshot assets (not needed for deployment)
+services/core/assets/*.jpg
+services/core/assets/*.png
+
+# Upstream example apps (not part of OpenClaw template)
+services/mongo/exampleApps/

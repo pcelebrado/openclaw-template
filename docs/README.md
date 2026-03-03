@@ -6,7 +6,7 @@ Welcome to the comprehensive documentation for the OpenClaw Railway Template—a
 
 - **[Service Architecture](./service-architecture.md)** — Understand the three-service architecture
 - **[Book-First UI](./book-first-ui.md)** — Learn about the calm research UI pattern
-- **[Environment Variables](./environment-variables.md)** — Configuration reference
+- **[Predeploy Next Steps](./PREDEPLOY_NEXT_STEPS.md)** — Deployment checklist and secrets wiring map
 
 ## Feature Documentation
 
@@ -96,14 +96,14 @@ See individual feature documents for detailed configuration options.
 
 ```bash
 # Web Service
-MONGODB_URI=mongodb://mongo.railway.internal:27017/natealma
-INTERNAL_CORE_BASE_URL=http://core.railway.internal:7200
-INTERNAL_JWT_SIGNING_KEYS=[{"kid":"k1","secret":"...","active":true}]
+MONGODB_URI=mongodb://mongo.railway.internal:27017/openclaw
+INTERNAL_CORE_BASE_URL=http://core.railway.internal:8080
+INTERNAL_SERVICE_TOKEN=changeme-generate-a-strong-random-token
 AUTH_SECRET=your-auth-secret
 AUTH_URL=https://your-app.railway.app
 
 # Core Service
-INTERNAL_JWT_VERIFY_KEYS=[{"kid":"k1","secret":"...","active":true}]
+INTERNAL_SERVICE_TOKEN=changeme-generate-a-strong-random-token
 SETUP_PASSWORD=your-secure-setup-password
 OPENCLAW_STATE_DIR=/data/.openclaw
 OPENCLAW_WORKSPACE_DIR=/data/workspace

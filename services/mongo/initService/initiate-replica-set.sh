@@ -1,5 +1,18 @@
 #!/bin/bash
 
+MONGO_PORT="${MONGO_PORT:-27017}"
+MONGO_PRIMARY_HOST="${MONGO_PRIMARY_HOST:-mongo.railway.internal}"
+MONGO_REPLICA_HOST="${MONGO_REPLICA_HOST:-mongo-replica-1.railway.internal}"
+MONGO_REPLICA2_HOST="${MONGO_REPLICA2_HOST:-mongo-replica-2.railway.internal}"
+REPLICA_SET_NAME="${REPLICA_SET_NAME:-rs0}"
+MONGOUSERNAME="${MONGOUSERNAME:-${MONGO_INITDB_ROOT_USERNAME:-}}"
+MONGOPASSWORD="${MONGOPASSWORD:-${MONGO_INITDB_ROOT_PASSWORD:-}}"
+
+if [[ -z "$MONGOUSERNAME" || -z "$MONGOPASSWORD" ]]; then
+  echo "Missing Mongo credentials. Set MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD (or MONGOUSERNAME/MONGOPASSWORD)."
+  exit 1
+fi
+
 debug_log() {
   if [[ "$DEBUG" == "1" ]]; then
     echo "DEBUG: $1"

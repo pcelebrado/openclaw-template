@@ -30,6 +30,11 @@ Browser → [web] (public) → [core] (internal) → OpenClaw Gateway
 3. The init service will bootstrap the replica set automatically
 4. Use the internal connection string from your `web` and `core` services
 
+Environment contract:
+- `nodes/.env.example` values should be mirrored as Railway Variables for the Mongo node service.
+- `initService/.env.example` and `initServiceSingle/.env.example` define one-shot init variables.
+- Keep `KEYFILE`, root username, and root password in Railway Variables only.
+
 ## Security
 
 - No public port exposure
