@@ -1,6 +1,6 @@
 # OpenClaw Book Template
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github?repo=https://github.com/pcelebrado/openclaw-template)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github?repo=https://github.com/pcelebrado/Book-of-Openclaw&branch=mvp)
 
 > **Give OpenClaw a Book. A topic. Let it become a master, then let it become your Teacher.**
 
@@ -52,10 +52,14 @@ This Railway template deploys a complete **AI-powered learning platform** in min
 │  │  │   OpenClaw   │  │   MongoDB    │  │     QMD Search       │   │   │
 │  │  │  (AI Agent)  │  │  (embedded)  │  │  (Semantic Index)    │   │   │
 │  │  └──────────────┘  └──────────────┘  └──────────────────────┘   │   │
+│  │  ┌──────────────┐                                                │   │
+│  │  │   SFTPGo     │  SFTP :2022 (TCP Proxy) + Admin :2080         │   │
+│  │  └──────────────┘                                                │   │
 │  │                                                                  │   │
 │  │  Single Railway volume: /data (500MB)                            │   │
 │  │  • /data/db — MongoDB   • /data/.openclaw — Config & state      │   │
 │  │  • /data/workspace      • /data/book-source — Content staging   │   │
+│  │  • /data/sftpgo — SFTPGo state and host keys                    │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -118,33 +122,33 @@ The right rail exposes **context-aware teaching tools** for whatever you're read
 
 ## Quick Start
 
-### 1. Deploy to Railway
+### 1. Import to Railway
 
-Click the **Deploy on Railway** button above or:
+This repo is structured as an **npm workspace monorepo**. Railway auto-detects both services on import.
 
-```bash
-# Clone and push to your own repo
-git clone https://github.com/pcelebrado/openclaw-template.git
-cd openclaw-template
-# ... create your own repo and push ...
-```
+1. Go to [railway.com/new](https://railway.com/new) → **Deploy from GitHub repo**
+2. Select **`pcelebrado/Book-of-Openclaw`** (branch: `mvp`)
+3. Railway stages **two services** automatically: `openclaw-web` and `openclaw-core`
+4. Confirm and deploy
 
-### 2. Configure Services
+> If using the "Deploy on Railway" button above, Railway handles steps 1-3 for you.
 
-Create these Railway services from your repository:
+### 2. Post-Import Setup (Dashboard)
 
-| Service | Root Directory | Config | Public Network | Volumes |
-|---------|---------------|--------|----------------|---------|
-| `web` | `services/web` | `railway.toml` | ✅ Enabled | — |
-| `core` | `services/core` | `railway.toml` | ❌ Disabled | `/data` (500MB) |
+After Railway creates both services, configure these in the dashboard:
 
-> **Free plan note:** MongoDB runs embedded inside the `core` container sharing a single 500MB persistent volume. No separate database service needed.
+| Step | Service | Where | What |
+|------|---------|-------|------|
+| **Volume** | `core` | Settings → Volumes | Add volume, mount path: `/data` |
+| **TCP Proxy** | `core` | Settings → Networking | Enable TCP Proxy on port `2022` (for SFTP) |
+| **Public Domain** | `web` | Settings → Networking | Generate domain (or add custom) |
+| **No Public** | `core` | Settings → Networking | Ensure NO public domain (internal only) |
 
 ### 3. Set Environment Variables
 
-Use each service's `.env.example` as a baseline. **Never commit real secrets.**
+Set these in Railway Variables (per service), not in code. **Never commit real secrets.**
 
-#### Web Service
+#### Web Service Variables
 
 ```bash
 # Database (MongoDB runs inside core service — standalone, no replica set)
@@ -152,30 +156,36 @@ MONGODB_URI=mongodb://core.railway.internal:27017/openclaw
 
 # Internal Service Communication
 INTERNAL_CORE_BASE_URL=http://core.railway.internal:8080
-INTERNAL_SERVICE_TOKEN=your-shared-secret-here
+INTERNAL_SERVICE_TOKEN=<generate-a-strong-random-token>
 
 # Auth
-AUTH_SECRET=your-auth-secret-here
+AUTH_SECRET=<generate-with-openssl-rand-base64-32>
 AUTH_URL=https://your-app.railway.app
 NEXT_PUBLIC_APP_URL=https://your-app.railway.app
 ```
 
-#### Core Service
+#### Core Service Variables
 
 ```bash
 # Must match web service
-INTERNAL_SERVICE_TOKEN=your-shared-secret-here
+INTERNAL_SERVICE_TOKEN=<same-token-as-web-service>
 
 # Setup & State
-SETUP_PASSWORD=your-secure-setup-password
-OPENCLAW_STATE_DIR=/data/.openclaw
-OPENCLAW_WORKSPACE_DIR=/data/workspace
+SETUP_PASSWORD=<your-secure-setup-password>
 
-# Embedded MongoDB (auto-configured, override only if needed)
-MONGO_PORT=27017
-MONGO_BIND_IP=::,0.0.0.0
-MONGODB_URI=mongodb://127.0.0.1:27017/openclaw
+# SFTPGo admin credentials (set here, not in code)
+SFTPGO_DEFAULT_ADMIN_USERNAME=<your-admin-username>
+SFTPGO_DEFAULT_ADMIN_PASSWORD=<your-strong-password>
 ```
+
+> Most core variables (MongoDB, OpenClaw paths, SFTPGo ports) are pre-configured in `railway.toml`. Only secrets and service tokens need manual entry.
+
+### 4. Deploy and Verify
+
+1. Deploy `core` first — it starts MongoDB and SFTPGo automatically
+2. Deploy `web` — verify `/api/health` returns 200
+3. Connect via SFTP to upload book content (Railway gives you `roundhouse.proxy.rlwy.net:XXXXX`)
+4. Run reindex from Admin panel
 
 ---
 
@@ -231,11 +241,13 @@ npm run build
 ### Container Build Checks
 
 ```bash
-# Web
-docker build -f services/web/Dockerfile services/web
+# Web (from the web service directory)
+cd services/web
+docker build -t openclaw-web .
 
-# Core (includes embedded MongoDB)
-docker build -f services/core/Dockerfile services/core
+# Core (from the core service directory — includes MongoDB + SFTPGo)
+cd services/core
+docker build -t openclaw-core .
 ```
 
 ---

@@ -1,15 +1,15 @@
 # =============================================================================
 # OpenClaw Core Service - Railway Configuration (MVP)
 # CONSOLIDATED SERVICE: OpenClaw + MongoDB + QMD + SFTPGo
-# Monorepo path contract: service root directory must be `services/core`.
-# If using custom config file path in Railway, set `/services/core/railway.toml`.
 # =============================================================================
 # This service runs OpenClaw, QMD, embedded MongoDB, and SFTPGo.
 # All persistent data is stored on a single Railway volume at /data (500MB).
+#
+# Railway monorepo auto-import detects this file at the workspace package root.
 # =============================================================================
 
 [build]
-builder = "dockerfile"
+builder = "DOCKERFILE"
 watchPatterns = [
   "/services/core/**",
   "!**/node_modules/**",
@@ -19,7 +19,8 @@ watchPatterns = [
 [deploy]
 healthcheckPath = "/setup/healthz"
 healthcheckTimeout = 300
-restartPolicyType = "on_failure"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
 
 # Require a persistent volume mounted at /data (Railway).
 # Volume layout:

@@ -1,12 +1,13 @@
 # =============================================================================
 # OpenClaw Web Service - Railway Configuration
 # PUBLIC SERVICE (the only public HTTP surface)
-# Monorepo path contract: service root directory must be `services/web`.
-# If using custom config file path in Railway, set `/services/web/railway.toml`.
+# =============================================================================
+# Next.js 14 frontend with standalone output.
+# Railway monorepo auto-import detects this file at the workspace package root.
 # =============================================================================
 
 [build]
-builder = "dockerfile"
+builder = "DOCKERFILE"
 watchPatterns = [
   "/services/web/**",
   "!**/node_modules/**",
@@ -17,7 +18,8 @@ watchPatterns = [
 [deploy]
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
-restartPolicyType = "on_failure"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
 
 [variables]
 NEXT_TELEMETRY_DISABLED = "1"
