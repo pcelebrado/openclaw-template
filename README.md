@@ -1,8 +1,27 @@
-# OpenClaw Railway Template
+# OpenClaw Book Template
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github?repo=https://github.com/pcelebrado/openclaw-template)
 
-> **Book-first MVP architecture** — A calm, editorial learning environment for structured content with AI-assisted study tools.
+> **Give OpenClaw a Book. A topic. Let it become a master, then let it become your Teacher.**
+
+Transform any structured content into an immersive learning environment. Upload your book, documentation, or course material. OpenClaw reads it, understands it, and becomes your personal teaching assistant.
+
+---
+
+## What This Template Does
+
+This Railway template deploys a complete **AI-powered learning platform** in minutes:
+
+1. **Upload your content** — Markdown files, documentation, course materials, or structured books
+2. **OpenClaw studies it** — Indexes, analyzes, and builds semantic understanding
+3. **Learn interactively** — Read, take notes, build playbooks, and ask your AI teacher anything
+
+**Perfect for:**
+- Technical documentation and developer guides
+- Online courses and educational content  
+- Training materials and onboarding docs
+- Research papers and academic texts
+- Any structured content you want to master
 
 ---
 
@@ -20,7 +39,7 @@
 │  │  │  (TOC Tree)  │  │  (Reader/Lists)  │  │  (Agent Panel)   │   │   │
 │  │  └──────────────┘  └──────────────────┘  └──────────────────┘   │   │
 │  │                                                                  │   │
-│  │  • Library (Book Index)      • Reader (Section View)            │   │
+│  │  • Library (Content Index)   • Reader (Section View)            │   │
 │  │  • Notes & Highlights        • Playbooks (Draft → Published)    │   │
 │  │  • Admin (Status & Reindex)  • Command Palette (⌘K)             │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
@@ -31,7 +50,7 @@
 │  │   [core]    │    │   [mongo]   │    │  [sftpgo]   │                │
 │  │  (internal) │    │  (internal) │    │  (optional) │                │
 │  │             │    │             │    │             │                │
-│  │ • OpenClaw  │    │ • Book      │    │ • SSH/SFTP  │                │
+│  │ • OpenClaw  │    │ • Content   │    │ • SSH/SFTP  │                │
 │  │ • QMD       │    │ • Notes     │    │ • File      │                │
 │  │ • SFTPGo    │    │ • Playbooks │    │   Uploads   │                │
 │  └─────────────┘    └─────────────┘    └─────────────┘                │
@@ -42,66 +61,55 @@
 
 ---
 
-## Design Philosophy
+## The Learning Experience
 
-This template implements the **"Calm Research UI"** pattern:
+### Three-Column Sacred Shell
 
-- **Editorial first** — Typography and rhythm carry the design
-- **Calm density** — Full but breathable; never cramped
-- **Quiet chrome** — Minimal borders, subtle surfaces
-- **One accent** — Restrained color for focus and links
-- **No empty pages** — Every state has purpose and a next action
-- **No silent failure** — Every async action shows status, timestamp, and retry
+The core layout is a **stable 3-column shell** that remains consistent across all content:
 
----
+| Column | Width | Purpose |
+|--------|-------|---------|
+| **Left Rail** | 280px | Table of Contents (Parts → Chapters → Sections) |
+| **Center** | 760px max | Reading content, library lists, your notes |
+| **Right Rail** | 360px | AI teaching assistant panel |
 
-## Service Overview
+### Responsive Adaptation
 
-| Service | Purpose | Exposure | Stack |
-|---------|---------|----------|-------|
-| `web` | Book UI, Auth, API Routes | **Public** | Next.js 15, Tailwind, shadcn/ui |
-| `core` | Agent runtime, Search, Indexing | Internal-only | OpenClaw + QMD + SFTPGo bundle |
-| `mongo` | Persistent storage | Internal-only | MongoDB replica set |
-| `sftpgo` | File upload interface | Optional public | SFTP/SSH service |
+| Breakpoint | Layout |
+|------------|--------|
+| `≥1536px` (2xl) | Full 3-column |
+| `≥1280px` (xl) | 2-column + AI drawer |
+| `≥1024px` (lg) | 1-column + TOC drawer + AI drawer |
+| `<1024px` | Mobile: full-width sheets |
 
----
+### Core Pages
 
-## Monorepo Layout
+1. **Library** (`/book`) — Browse your content collection with reading progress
+2. **Reader** (`/book/[...slug]`) — Immersive reading with structured learning blocks
+3. **Notes** (`/notes`) — Your personal knowledge base, searchable and filterable
+4. **Playbooks** (`/playbooks`) — Draft, refine, and publish your own guides
+5. **Admin** (`/admin`) — System status, content reindexing, audit logs
+6. **Login** (`/login`) — Secure authentication for your private learning space
 
-```
-openclaw-template/
-├── services/
-│   ├── web/                    # Next.js Book-first UI
-│   │   ├── src/
-│   │   │   ├── app/           # App Router (Library, Reader, Notes, Playbooks, Admin)
-│   │   │   ├── components/    # shadcn/ui components + custom
-│   │   │   ├── lib/           # Mongo client, rate limiting, logger
-│   │   │   └── types/         # TypeScript definitions
-│   │   └── .env.example
-│   │
-│   ├── core/                   # OpenClaw runtime container
-│   │   ├── Dockerfile
-│   │   ├── railway.toml
-│   │   └── .env.example
-│   │
-│   ├── mongo/                  # MongoDB replica set
-│   │   ├── nodes/             # Primary MongoDB container
-│   │   ├── initService/       # 3-node replica initialization
-│   │   └── initServiceSingle/ # Single-node replica initialization
-│   │
-│   └── sftpgo/                 # Optional SSH/SFTP service
-│       ├── Dockerfile
-│       ├── startup.sh
-│       └── .env.example
-│
-├── docs/
-│   ├── PREDEPLOY_NEXT_STEPS.md      # Deployment checklist
-│   └── SSH_SFTPGO_GO_LIVE.md        # SFTP configuration guide
-│
-├── railway.json               # Railway monorepo configuration
-├── LICENSE
-└── README.md                  # You are here
-```
+### Structured Content Blocks
+
+Every section in the Reader displays (when present):
+
+- **TL;DR** — ≤3 bullet summary of key takeaways
+- **Checklist** — ≤5 actionable items to apply what you learned
+- **Common Mistakes** — ≤3 pitfalls to avoid
+- **Drill** — 1 exercise to reinforce understanding
+
+### AI Teaching Assistant Skills
+
+The right rail exposes **context-aware teaching tools** for whatever you're reading:
+
+1. **Explain/Rephrase** — Simple / Technical / Analogy modes
+2. **Socratic Tutor** — 3-5 questions to test your understanding
+3. **Flashcards/Quiz** — 5-10 Q&A pairs for spaced repetition
+4. **Checklist Builder** — Create procedural guides from content
+5. **Scenario Tree Builder** — If/Then decision trees
+6. **Notes Assistant** — Create, tag, and link your insights
 
 ---
 
@@ -137,7 +145,7 @@ Use each service's `.env.example` as a baseline. **Never commit real secrets.**
 
 ```bash
 # Database
-MONGODB_URI=mongodb://mongo.railway.internal:27017/natealma
+MONGODB_URI=mongodb://mongo.railway.internal:27017/openclaw
 
 # Internal Service Communication
 INTERNAL_CORE_BASE_URL=http://core.railway.internal:7200
@@ -150,14 +158,14 @@ AUTH_SECRET=your-auth-secret-here
 AUTH_URL=https://your-app.railway.app
 NEXT_PUBLIC_APP_URL=https://your-app.railway.app
 
-# Book Import (optional)
-BOOK_SOURCE_MODE=manifest
-BOOK_SOURCE_DIR=/data/content
-BOOK_IMPORT_MANIFEST=/data/content/manifest.json
-BOOK_CANONICAL_COLLECTION=book_sections
-BOOK_TOC_COLLECTION=book_toc
-BOOK_IMPORT_ENABLED=false
-BOOK_IMPORT_DRY_RUN=true
+# Content Import (optional)
+CONTENT_SOURCE_MODE=manifest
+CONTENT_SOURCE_DIR=/data/content
+CONTENT_IMPORT_MANIFEST=/data/content/manifest.json
+CONTENT_CANONICAL_COLLECTION=content_sections
+CONTENT_TOC_COLLECTION=content_toc
+CONTENT_IMPORT_ENABLED=false
+CONTENT_IMPORT_DRY_RUN=true
 ```
 
 #### Core Service
@@ -172,9 +180,9 @@ OPENCLAW_STATE_DIR=/data/.openclaw
 OPENCLAW_WORKSPACE_DIR=/data/workspace
 OPENCLAW_GATEWAY_TOKEN=your-gateway-token-here
 
-# Book Import (same as web)
-BOOK_SOURCE_MODE=manifest
-BOOK_SOURCE_DIR=/data/content
+# Content Import (same as web)
+CONTENT_SOURCE_MODE=manifest
+CONTENT_SOURCE_DIR=/data/content
 # ... etc
 ```
 
@@ -197,6 +205,40 @@ SFTPGO_DEFAULT_ADMIN_PASSWORD=your-secure-password
 SFTPGO_HTTPD__BINDINGS__0__PORT=8080
 SFTPGO_SFTPD__BINDINGS__0__PORT=2022
 SFTPGO_DATA_ROOT=/data/sftpgo
+```
+
+---
+
+## Adding Your Content
+
+### Option 1: SFTP Upload (Easiest)
+
+1. Enable the SFTPGo service
+2. Connect via SFTP client (FileZilla, Cyberduck, etc.)
+3. Upload your Markdown files to `/data/content/`
+4. Run reindex from Admin panel
+
+### Option 2: Git-based Import
+
+1. Store your content in a Git repository
+2. Mount it as a Railway volume at `/data/content/`
+3. Set `CONTENT_IMPORT_MANIFEST` to point to your manifest.json
+
+### Content Format
+
+Your content should be structured Markdown with YAML frontmatter:
+
+```markdown
+---
+title: "Your Section Title"
+date: "2024-01-15"
+part: "Part I: Foundations"
+chapter: "Chapter 1: Getting Started"
+---
+
+## Your Content Here
+
+Write in Markdown. The AI will index and understand it all.
 ```
 
 ---
@@ -231,55 +273,18 @@ docker build -f services/mongo/nodes/Dockerfile services/mongo/nodes
 
 ---
 
-## The Book-First UI
+## Design Philosophy
 
-### Three-Column Sacred Shell
+This template implements the **"Calm Research UI"** pattern:
 
-The core layout is a **stable 3-column shell** that remains consistent across all book-related pages:
+- **Editorial first** — Typography and rhythm carry the design
+- **Calm density** — Full but breathable; never cramped
+- **Quiet chrome** — Minimal borders, subtle surfaces
+- **One accent** — Restrained color for focus and links
+- **No empty pages** — Every state has purpose and a next action
+- **No silent failure** — Every async action shows status, timestamp, and retry
 
-| Column | Width | Purpose |
-|--------|-------|---------|
-| **Left Rail** | 280px | TOC Tree (Parts → Chapters → Sections) |
-| **Center** | 760px max | Reader content, Library lists, Notes |
-| **Right Rail** | 360px | Agent panel with learning tools |
-
-### Responsive Adaptation
-
-| Breakpoint | Layout |
-|------------|--------|
-| `≥1536px` (2xl) | Full 3-column |
-| `≥1280px` (xl) | 2-column + Agent drawer |
-| `≥1024px` (lg) | 1-column + TOC drawer + Agent drawer |
-| `<1024px` | Mobile: full-width sheets |
-
-### Required Page Set
-
-1. **Library** (`/book`) — Book index with progress
-2. **Reader** (`/book/[...slug]`) — Section view with structured blocks
-3. **Notes** (`/notes`) — Filterable note collection
-4. **Playbooks** (`/playbooks`) — Draft → Published lifecycle
-5. **Admin** (`/admin`) — Status, reindex, audit log
-6. **Login** (`/login`) — Secure authentication
-
-### Structured Content Blocks
-
-Every section in the Reader displays (when present):
-
-- **TL;DR** — ≤3 bullet summary
-- **Checklist** — ≤5 actionable items
-- **Common Mistakes** — ≤3 pitfalls
-- **Drill** — 1 exercise
-
-### Agent Panel Skills
-
-The right rail exposes **buttonable skills** for the current section:
-
-1. **Explain/Rephrase** — Simple / Technical / Analogy modes
-2. **Socratic Tutor** — 3-5 questions to test understanding
-3. **Flashcards/Quiz** — 5-10 Q&A pairs
-4. **Checklist Builder** — Pre/During/Post trade checklist
-5. **Scenario Tree Builder** — If/Then decision trees
-6. **Notes Assistant** — Create, tag, and link notes
+The goal is **learning, retention, and recall** — not just reading.
 
 ---
 
@@ -299,7 +304,7 @@ POST /api/highlights                  # Create highlight
 POST /api/bookmarks/toggle            # Toggle bookmark
 POST /api/progress                    # Update reading progress
 
-POST /api/agent/skill                 # Run agent skill
+POST /api/agent/skill                 # Run AI teaching skill
 
 GET  /api/admin/status                # System status (admin)
 POST /api/admin/book/reindex          # Trigger reindex (admin)
@@ -309,7 +314,7 @@ POST /api/admin/book/reindex          # Trigger reindex (admin)
 
 ```
 POST /internal/search                 # QMD semantic search
-POST /internal/agent/run              # Execute agent skill
+POST /internal/agent/run              # Execute AI skill
 POST /internal/index/rebuild          # Rebuild search index
 GET  /internal/index/status           # Index job status
 GET  /internal/health                 # Health check
@@ -336,7 +341,7 @@ X-Request-Id: <uuid>
 | Endpoint | Limit |
 |----------|-------|
 | Login | 5 attempts / 15 min / IP |
-| Agent skills | 10 / min, 100 / hour / user |
+| AI skills | 10 / min, 100 / hour / user |
 | Search | 30 / min / user |
 | Admin actions | 5 / min / admin |
 
@@ -348,7 +353,7 @@ X-Request-Id: <uuid>
 - [ ] Service-to-service auth implemented
 - [ ] Rate limiting enabled
 - [ ] CORS locked to web domain only
-- [ ] Audit logging for admin and agent actions
+- [ ] Audit logging for admin and AI actions
 
 ---
 
@@ -384,194 +389,40 @@ See `docs/PREDEPLOY_NEXT_STEPS.md` for the full deployment checklist.
 
 ## Documentation
 
-### Getting Started
-
 | Document | Purpose |
 |----------|---------|
-| [docs/README.md](./docs/README.md) | Documentation index and quick reference |
-| [docs/service-architecture.md](./docs/service-architecture.md) | Three-service Railway deployment architecture |
-| [docs/book-first-ui.md](./docs/book-first-ui.md) | Calm Research UI pattern and layout system |
-
-### Core Features
-
-| Document | Purpose |
-|----------|---------|
-| [docs/mongodb-data-layer.md](./docs/mongodb-data-layer.md) | Data model, collections, and schema design |
-| [docs/internal-service-auth.md](./docs/internal-service-auth.md) | JWT-based service-to-service authentication |
-| [docs/agent-skills.md](./docs/agent-skills.md) | AI-assisted study tools and integration |
-| [docs/security-rate-limiting.md](./docs/security-rate-limiting.md) | Defense in depth and rate limiting |
-| [docs/sleep-scale-to-zero.md](./docs/sleep-scale-to-zero.md) | Handling Railway cold starts gracefully |
-| [docs/operations-deployment.md](./docs/operations-deployment.md) | Deployment workflows and operations |
-
-### Reference
-
-| Document | Purpose |
-|----------|---------|
-| [docs/PREDEPLOY_NEXT_STEPS.md](./docs/PREDEPLOY_NEXT_STEPS.md) | Deployment checklist and secrets wiring map |
-| [docs/SSH_SFTPGO_GO_LIVE.md](./docs/SSH_SFTPGO_GO_LIVE.md) | SFTP configuration and go-live checks |
-| [docs/features.json](./docs/features.json) | Machine-readable feature specification |
+| `docs/PREDEPLOY_NEXT_STEPS.md` | Deployment checklist and secrets wiring map |
+| `docs/SSH_SFTPGO_GO_LIVE.md` | SFTP configuration and go-live checks |
 | `services/*/README.md` | Service-specific documentation |
 | `services/*/.env.example` | Environment variable templates |
 
 ---
 
-## Planned Features (Roadmap)
+## Roadmap: What's Coming
 
-The following features are planned for future development based on research notes and user needs:
+### Always-On AI Teacher
+Deploy a persistent AI agent that:
+- Monitors your learning progress
+- Suggests content based on your notes and playbooks
+- Answers questions via Telegram/Discord bot
+- Sends daily learning digests
 
-### Trading & Analytics Add-ons
+### Multi-Modal Content
+- PDF import and automatic Markdown conversion
+- Video transcript indexing
+- Image and diagram understanding
+- Interactive code execution
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Paper Trading Integration** | Alpaca paper trading for validating signals without real capital | Planned |
-| **Options Chain Feed** | Brokerage API integration for options quotes and Greeks | Research |
-| **Volatility Regime Engine** | HV/IV analysis, ATR, trend/mean-reversion classification | Planned |
-| **Payoff & Greeks Calculator** | PnL curves, break-evens, theta decay profiles | Planned |
-| **Position Sizing Module** | Risk per trade, max portfolio exposure calculations | Planned |
-| **Alerts Engine** | Price/level alerts, volatility alerts, time-based alerts | Planned |
-| **EDGAR Watcher** | SEC filings monitoring for SPY top holdings with diff summaries | Planned |
-| **FRED Macro Context** | Interest rates, CPI, unemployment data integration | Planned |
-| **Trade Journal** | Paper + real trade logging with screenshots and thesis | Planned |
-| **Backtesting Harness** | Simple rules validation without overfitting | Research |
+### Collaborative Learning
+- Study groups and shared annotations
+- Instructor dashboards for course creators
+- Community playbooks and shared insights
 
-#### Feature Descriptions
-
-**Paper Trading Integration**
-Integrate with Alpaca's free paper trading API to simulate trades, track positions, and validate trading signals without risking real capital. The agent can generate "would-have" P&L reports, track position sizing rules, simulate entries/exits, and create post-trade notes. This allows testing strategies in a realistic environment before live deployment.
-
-**Options Chain Feed**
-Connect to brokerage APIs (Tradier, Alpaca, or others) to retrieve real-time or delayed options chain data including quotes, Greeks (delta, gamma, theta, vega), and implied volatility. Note: True real-time OPRA data typically requires a brokerage account or paid data subscription. The agent uses this data to recommend appropriate strategies based on current market conditions.
-
-**Volatility Regime Engine**
-Analyze historical volatility (HV) versus implied volatility (IV) to classify market regimes. Calculate metrics like 20-day HV crossing 60-day HV, ATR (Average True Range), range expansion, and trend/mean-reversion signals. This helps the agent suggest appropriate options strategies—debit spreads in low IV environments, credit spreads in high IV, calendars when expecting IV crush, etc.
-
-**Payoff & Greeks Calculator**
-Visualize option strategy P&L curves at expiration and at various time intervals before expiration. Calculate break-even points, max profit/loss, and probability of profit. Display Greeks profiles showing how delta, gamma, theta, and vega change as underlying price moves and time decays. Essential for understanding risk before entering positions.
-
-**Position Sizing Module**
-Implement defined-risk position sizing based on account size, risk tolerance, and strategy type. Calculate maximum portfolio exposure, risk per trade, and concentration limits. Enforce guardrails like "no more than X% of account in any single underlying" or "max loss per day." Critical for long-term survival in options trading.
-
-**Alerts Engine**
-Multi-channel alert system for price levels, technical indicators, volatility spikes, and time-based events. Alert types include: price breaks/reclaims, VWAP/AVWAP touches, HV/IV regime changes, gap fills, "30 minutes to close," earnings announcements, Fed meetings, and OPEX week reminders. Alerts delivered via web UI, Telegram/Discord bot, or email.
-
-**EDGAR Watcher**
-Monitor SEC filings (8-K, 10-Q, 10-K) for SPY's top holdings (AAPL, MSFT, NVDA, AMZN, etc.) using the free SEC EDGAR API. Automatically detect material changes: guidance revisions, new risk factors, going concern language, unusual 8-K items. Summarize changes and alert when significant news drops—often before it hits mainstream financial media.
-
-**FRED Macro Context**
-Integrate Federal Reserve Economic Data (FRED) API to pull interest rates, CPI, unemployment, credit spreads, and other macro indicators. The agent uses this data to provide regime context: "We're in a rising rate environment with elevated inflation—consider shorter-dated trades" or "Credit spreads widening—defensive positioning warranted."
-
-**Trade Journal**
-Structured logging of all trades (paper and real) with fields for: setup/thesis, entry/exit criteria, position sizing rationale, screenshots/charts, outcome, lessons learned, and tags. Supports filtering by strategy, underlying, date range, and outcome. Generates performance analytics: win rate, average P&L, max drawdown, expectancy. Essential for continuous improvement.
-
-**Backtesting Harness**
-Simple backtesting framework for validating trading rules against historical data. Focus on sanity checks rather than optimization: "How often did this setup work in the past year?" Uses free historical data from Stooq or brokerage APIs. Includes metrics for win rate, profit factor, max consecutive losses, and drawdown. Prevents overfitting through walk-forward analysis and out-of-sample testing.
-
-### Data Sources
-
-| Source | Purpose | Cost |
-|--------|---------|------|
-| **Alpaca Paper Trading** | Simulate trades and track positions | Free |
-| **FRED API** | Economic indicators and macro data | Free |
-| **SEC EDGAR API** | Filings and material changes | Free |
-| **GDELT** | Global news dataset for event radar | Free |
-| **Stooq** | Historical market data for research | Free |
-| **Finnhub** | Earnings calendar and fundamentals | Free tier |
-| **Tradier** | Options chain (requires brokerage account) | Account holders |
-
-#### Data Source Details
-
-**Alpaca Paper Trading (Free)**
-Commission-free paper trading platform with REST and WebSocket APIs. Supports equities and options (availability varies). Provides realistic fill simulation, position tracking, and portfolio management. Rate limits: 200 requests/minute. Ideal for testing strategies without capital risk.
-
-**FRED API (Free)**
-Federal Reserve Economic Data API providing access to 800,000+ economic time series. Key datasets: Federal Funds Rate, CPI, unemployment rate, Treasury yields, credit spreads. No API key required for basic access. Updates daily to monthly depending on series. Essential for macro context.
-
-**SEC EDGAR API (Free)**
-Official SEC API for accessing company filings (10-K, 10-Q, 8-K, etc.). Full-text search, company lookups, and recent filings feeds. No API key required. Rate limits are reasonable for personal use. Best source for official company news and material changes.
-
-**GDELT (Free)**
-Global Database of Events, Language, and Tone. Monitors news media worldwide in 100+ languages. Provides event extraction, sentiment analysis, and actor identification. Updated every 15 minutes. Useful for building "event radar" for specific companies, sectors, or keywords without paid news APIs.
-
-**Stooq (Free)**
-Historical market data provider offering downloadable CSV files. Covers stocks, ETFs, indices, forex, and commodities. Data includes OHLCV, adjusted close, and dividends. Good for backtesting and research. Note: Real-time data not available; use for historical analysis only.
-
-**Finnhub (Free Tier)**
-Financial data API with free tier (60 calls/minute). Provides earnings calendar, company fundamentals, basic price data, and news sentiment. Good for earnings date tracking and basic company research. Paid tiers available for higher limits and real-time data.
-
-**Tradier (Account Holders)**
-Brokerage API providing real-time market data to account holders. Includes options chains, Greeks, and streaming quotes. Commission-free equity and options trading. Requires opening a Tradier brokerage account. Best free option for real-time options data if you're willing to open an account.
-
-### UX Enhancements
-
-| Feature | Description |
-|---------|-------------|
-| **Telegram/Discord Bot** | Alerts and Q&A outside the web app |
-| **Email Digests** | Morning plan + end-of-day recap |
-| **Mobile App** | Native mobile experience (PWA first) |
-| **Dashboard** | Portfolio overview and key metrics |
-| **Journal** | Structured trade review and reflection |
-| **Alerts Center** | Centralized alert management and history |
-
-#### UX Enhancement Details
-
-**Telegram/Discord Bot**
-Extend the agent's reach beyond the web app with chatbot integration. Receive alerts, query positions, ask questions about book content, and get quick market summaries. Supports commands like `/status` for portfolio overview, `/alert` to set quick price alerts, and `/explain` to get definitions of trading terms. Keeps users connected without opening the browser.
-
-**Email Digests**
-Automated morning and evening email summaries. Morning: market context, upcoming events (earnings, Fed meetings), open positions status, and suggested focus areas from the book. Evening: P&L summary, trades executed, alerts triggered, and recommended reading for tomorrow. Configurable frequency and content sections.
-
-**Mobile App (PWA First)**
-Progressive Web App providing native-like mobile experience. Core features: view book content, receive push notifications for alerts, quick note-taking, and position monitoring. Offline support for cached book sections. Future: native iOS/Android apps with advanced charting and faster execution.
-
-**Dashboard**
-Portfolio overview page showing: current positions (P&L, Greeks exposure), today's trading activity, active alerts, recent journal entries, reading progress, and key metrics (account value, buying power, theta decay today). Widget-based layout allowing customization. Charts show P&L over time, win rate by strategy, and exposure by underlying.
-
-**Journal**
-Structured trade review interface beyond the basic trade log. Guided reflection prompts: "What was my edge?" "What could go wrong?" "Did I follow my playbook?" Supports attaching screenshots, tagging emotions, and linking to specific playbooks. Generates weekly/monthly review summaries highlighting patterns in winning and losing trades.
-
-**Alerts Center**
-Centralized management for all alerts: price levels, technical indicators, volatility spikes, time-based reminders, and news events. View alert history, success rate (did the alert lead to a good trade?), and snooze/disable noisy alerts. Bulk management tools for organizing alerts by underlying, strategy, or expiration.
-
-### Technical Infrastructure
-
-| Feature | Description |
-|---------|-------------|
-| **Redis/Valkey** | Caching, session storage, queueing |
-| **Dedicated Worker Service** | Background jobs for indexing and imports |
-| **CDN Integration** | Static asset delivery optimization |
-| **Multi-Region Deployment** | Global availability |
-| **Monitoring Stack** | Prometheus/Grafana for metrics |
-
-#### Infrastructure Details
-
-**Redis/Valkey**
-In-memory data store for caching frequently accessed data (book sections, user sessions, rate limit counters) and queueing background jobs. Reduces MongoDB load and improves response times. Valkey is the open-source Redis alternative. Use cases: session store, API response cache, job queue for async tasks, and real-time pub/sub for alerts.
-
-**Dedicated Worker Service**
-Separate service for CPU-intensive background jobs: book reindexing, large data imports, historical backtests, and report generation. Prevents blocking the main web service. Implements job queue with retry logic, progress tracking, and failure handling. Workers can scale independently based on queue depth.
-
-**CDN Integration**
-Content Delivery Network for static assets (images, fonts, JavaScript bundles) and cached API responses. Reduces latency for global users and decreases server load. CloudFlare or AWS CloudFront integration. Also provides DDoS protection and edge caching for book content that doesn't change frequently.
-
-**Multi-Region Deployment**
-Deploy services across multiple geographic regions for lower latency and higher availability. Primary region handles writes; secondary regions serve read traffic. Automatic failover if primary region experiences issues. Requires data replication strategy and conflict resolution for concurrent updates.
-
-**Monitoring Stack**
-Comprehensive observability with Prometheus for metrics collection, Grafana for dashboards, and Loki for log aggregation. Monitor: request latency, error rates, database performance, cache hit rates, queue depths, and business metrics (active users, trades logged, alerts triggered). Alert on anomalies via PagerDuty or Slack.
-
----
-
-## Design System
-
-The template follows a **calm editorial "research UI"** pattern inspired by OpenAI's design philosophy:
-
-- **Typography:** Contemporary grotesk/neo-grotesk (Inter), strong hierarchy, relaxed line height (1.65)
-- **Layout:** Three-column sacred shell (TOC left, content center, agent right)
-- **Color:** Charcoal-based dark theme, one restrained accent, quiet chrome
-- **Spacing:** Consistent scale (4/8/12/16/24/32/48/64), rhythmic vertical layout
-- **Components:** Tailwind + shadcn/ui for standardized controls
-
-See [Visual Style Direction](https://github.com/pcelebrado/openclaw-template/blob/main/docs/book-first-ui.md) for full details.
+### Advanced Personalization
+- Learning path recommendations
+- Spaced repetition for flashcards
+- Knowledge gap analysis
+- Adaptive difficulty
 
 ---
 
@@ -586,10 +437,10 @@ See [Visual Style Direction](https://github.com/pcelebrado/openclaw-template/blo
 - This template provides **configuration and code scaffolding only**
 - No deployment action is required for local validation
 - All secrets must be configured via Railway Variables — never commit them to git
-- The Book-first UI philosophy prioritizes reading, retention, and recall over trading execution
+- The learning philosophy prioritizes **understanding over consumption**
 
 ---
 
 <p align="center">
-  <em>Built for structured learning with AI-assisted study tools</em>
+  <em>Give OpenClaw a Book. Let it become your Teacher.</em>
 </p>
