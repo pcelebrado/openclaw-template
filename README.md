@@ -434,6 +434,38 @@ The following features are planned for future development based on research note
 | **Trade Journal** | Paper + real trade logging with screenshots and thesis | Planned |
 | **Backtesting Harness** | Simple rules validation without overfitting | Research |
 
+#### Feature Descriptions
+
+**Paper Trading Integration**
+Integrate with Alpaca's free paper trading API to simulate trades, track positions, and validate trading signals without risking real capital. The agent can generate "would-have" P&L reports, track position sizing rules, simulate entries/exits, and create post-trade notes. This allows testing strategies in a realistic environment before live deployment.
+
+**Options Chain Feed**
+Connect to brokerage APIs (Tradier, Alpaca, or others) to retrieve real-time or delayed options chain data including quotes, Greeks (delta, gamma, theta, vega), and implied volatility. Note: True real-time OPRA data typically requires a brokerage account or paid data subscription. The agent uses this data to recommend appropriate strategies based on current market conditions.
+
+**Volatility Regime Engine**
+Analyze historical volatility (HV) versus implied volatility (IV) to classify market regimes. Calculate metrics like 20-day HV crossing 60-day HV, ATR (Average True Range), range expansion, and trend/mean-reversion signals. This helps the agent suggest appropriate options strategies—debit spreads in low IV environments, credit spreads in high IV, calendars when expecting IV crush, etc.
+
+**Payoff & Greeks Calculator**
+Visualize option strategy P&L curves at expiration and at various time intervals before expiration. Calculate break-even points, max profit/loss, and probability of profit. Display Greeks profiles showing how delta, gamma, theta, and vega change as underlying price moves and time decays. Essential for understanding risk before entering positions.
+
+**Position Sizing Module**
+Implement defined-risk position sizing based on account size, risk tolerance, and strategy type. Calculate maximum portfolio exposure, risk per trade, and concentration limits. Enforce guardrails like "no more than X% of account in any single underlying" or "max loss per day." Critical for long-term survival in options trading.
+
+**Alerts Engine**
+Multi-channel alert system for price levels, technical indicators, volatility spikes, and time-based events. Alert types include: price breaks/reclaims, VWAP/AVWAP touches, HV/IV regime changes, gap fills, "30 minutes to close," earnings announcements, Fed meetings, and OPEX week reminders. Alerts delivered via web UI, Telegram/Discord bot, or email.
+
+**EDGAR Watcher**
+Monitor SEC filings (8-K, 10-Q, 10-K) for SPY's top holdings (AAPL, MSFT, NVDA, AMZN, etc.) using the free SEC EDGAR API. Automatically detect material changes: guidance revisions, new risk factors, going concern language, unusual 8-K items. Summarize changes and alert when significant news drops—often before it hits mainstream financial media.
+
+**FRED Macro Context**
+Integrate Federal Reserve Economic Data (FRED) API to pull interest rates, CPI, unemployment, credit spreads, and other macro indicators. The agent uses this data to provide regime context: "We're in a rising rate environment with elevated inflation—consider shorter-dated trades" or "Credit spreads widening—defensive positioning warranted."
+
+**Trade Journal**
+Structured logging of all trades (paper and real) with fields for: setup/thesis, entry/exit criteria, position sizing rationale, screenshots/charts, outcome, lessons learned, and tags. Supports filtering by strategy, underlying, date range, and outcome. Generates performance analytics: win rate, average P&L, max drawdown, expectancy. Essential for continuous improvement.
+
+**Backtesting Harness**
+Simple backtesting framework for validating trading rules against historical data. Focus on sanity checks rather than optimization: "How often did this setup work in the past year?" Uses free historical data from Stooq or brokerage APIs. Includes metrics for win rate, profit factor, max consecutive losses, and drawdown. Prevents overfitting through walk-forward analysis and out-of-sample testing.
+
 ### Data Sources
 
 | Source | Purpose | Cost |
@@ -446,6 +478,29 @@ The following features are planned for future development based on research note
 | **Finnhub** | Earnings calendar and fundamentals | Free tier |
 | **Tradier** | Options chain (requires brokerage account) | Account holders |
 
+#### Data Source Details
+
+**Alpaca Paper Trading (Free)**
+Commission-free paper trading platform with REST and WebSocket APIs. Supports equities and options (availability varies). Provides realistic fill simulation, position tracking, and portfolio management. Rate limits: 200 requests/minute. Ideal for testing strategies without capital risk.
+
+**FRED API (Free)**
+Federal Reserve Economic Data API providing access to 800,000+ economic time series. Key datasets: Federal Funds Rate, CPI, unemployment rate, Treasury yields, credit spreads. No API key required for basic access. Updates daily to monthly depending on series. Essential for macro context.
+
+**SEC EDGAR API (Free)**
+Official SEC API for accessing company filings (10-K, 10-Q, 8-K, etc.). Full-text search, company lookups, and recent filings feeds. No API key required. Rate limits are reasonable for personal use. Best source for official company news and material changes.
+
+**GDELT (Free)**
+Global Database of Events, Language, and Tone. Monitors news media worldwide in 100+ languages. Provides event extraction, sentiment analysis, and actor identification. Updated every 15 minutes. Useful for building "event radar" for specific companies, sectors, or keywords without paid news APIs.
+
+**Stooq (Free)**
+Historical market data provider offering downloadable CSV files. Covers stocks, ETFs, indices, forex, and commodities. Data includes OHLCV, adjusted close, and dividends. Good for backtesting and research. Note: Real-time data not available; use for historical analysis only.
+
+**Finnhub (Free Tier)**
+Financial data API with free tier (60 calls/minute). Provides earnings calendar, company fundamentals, basic price data, and news sentiment. Good for earnings date tracking and basic company research. Paid tiers available for higher limits and real-time data.
+
+**Tradier (Account Holders)**
+Brokerage API providing real-time market data to account holders. Includes options chains, Greeks, and streaming quotes. Commission-free equity and options trading. Requires opening a Tradier brokerage account. Best free option for real-time options data if you're willing to open an account.
+
 ### UX Enhancements
 
 | Feature | Description |
@@ -457,6 +512,26 @@ The following features are planned for future development based on research note
 | **Journal** | Structured trade review and reflection |
 | **Alerts Center** | Centralized alert management and history |
 
+#### UX Enhancement Details
+
+**Telegram/Discord Bot**
+Extend the agent's reach beyond the web app with chatbot integration. Receive alerts, query positions, ask questions about book content, and get quick market summaries. Supports commands like `/status` for portfolio overview, `/alert` to set quick price alerts, and `/explain` to get definitions of trading terms. Keeps users connected without opening the browser.
+
+**Email Digests**
+Automated morning and evening email summaries. Morning: market context, upcoming events (earnings, Fed meetings), open positions status, and suggested focus areas from the book. Evening: P&L summary, trades executed, alerts triggered, and recommended reading for tomorrow. Configurable frequency and content sections.
+
+**Mobile App (PWA First)**
+Progressive Web App providing native-like mobile experience. Core features: view book content, receive push notifications for alerts, quick note-taking, and position monitoring. Offline support for cached book sections. Future: native iOS/Android apps with advanced charting and faster execution.
+
+**Dashboard**
+Portfolio overview page showing: current positions (P&L, Greeks exposure), today's trading activity, active alerts, recent journal entries, reading progress, and key metrics (account value, buying power, theta decay today). Widget-based layout allowing customization. Charts show P&L over time, win rate by strategy, and exposure by underlying.
+
+**Journal**
+Structured trade review interface beyond the basic trade log. Guided reflection prompts: "What was my edge?" "What could go wrong?" "Did I follow my playbook?" Supports attaching screenshots, tagging emotions, and linking to specific playbooks. Generates weekly/monthly review summaries highlighting patterns in winning and losing trades.
+
+**Alerts Center**
+Centralized management for all alerts: price levels, technical indicators, volatility spikes, time-based reminders, and news events. View alert history, success rate (did the alert lead to a good trade?), and snooze/disable noisy alerts. Bulk management tools for organizing alerts by underlying, strategy, or expiration.
+
 ### Technical Infrastructure
 
 | Feature | Description |
@@ -466,6 +541,23 @@ The following features are planned for future development based on research note
 | **CDN Integration** | Static asset delivery optimization |
 | **Multi-Region Deployment** | Global availability |
 | **Monitoring Stack** | Prometheus/Grafana for metrics |
+
+#### Infrastructure Details
+
+**Redis/Valkey**
+In-memory data store for caching frequently accessed data (book sections, user sessions, rate limit counters) and queueing background jobs. Reduces MongoDB load and improves response times. Valkey is the open-source Redis alternative. Use cases: session store, API response cache, job queue for async tasks, and real-time pub/sub for alerts.
+
+**Dedicated Worker Service**
+Separate service for CPU-intensive background jobs: book reindexing, large data imports, historical backtests, and report generation. Prevents blocking the main web service. Implements job queue with retry logic, progress tracking, and failure handling. Workers can scale independently based on queue depth.
+
+**CDN Integration**
+Content Delivery Network for static assets (images, fonts, JavaScript bundles) and cached API responses. Reduces latency for global users and decreases server load. CloudFlare or AWS CloudFront integration. Also provides DDoS protection and edge caching for book content that doesn't change frequently.
+
+**Multi-Region Deployment**
+Deploy services across multiple geographic regions for lower latency and higher availability. Primary region handles writes; secondary regions serve read traffic. Automatic failover if primary region experiences issues. Requires data replication strategy and conflict resolution for concurrent updates.
+
+**Monitoring Stack**
+Comprehensive observability with Prometheus for metrics collection, Grafana for dashboards, and Loki for log aggregation. Monitor: request latency, error rates, database performance, cache hit rates, queue depths, and business metrics (active users, trades logged, alerts triggered). Alert on anomalies via PagerDuty or Slack.
 
 ---
 
