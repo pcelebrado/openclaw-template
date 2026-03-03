@@ -5,6 +5,7 @@
 Dockerfile text eol=lf
 .dockerignore text eol=lf
 
+
 # Keep JSON/TOML/YAML consistent
 *.json text eol=lf
 *.toml text eol=lf
