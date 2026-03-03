@@ -22,9 +22,47 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [variables]
-NEXT_TELEMETRY_DISABLED = "1"
+# =============================================================================
+# All variables below are injected into every deployment of this service.
+# Secrets and cross-service references are set in the Railway Template Composer
+# (dashboard) — they use ${{...}} syntax which railway.toml cannot express.
+# =============================================================================
 
-# Hostname binding for IPv4/IPv6 dual-stack support.
-# Railway private networking supports both IPv4 and IPv6 (new environments)
-# and IPv6-only (legacy environments). Binding to :: ensures compatibility.
+# --- Next.js Runtime ---
+NEXT_TELEMETRY_DISABLED = "1"
+# IPv4/IPv6 dual-stack binding for Railway private networking compatibility.
 HOSTNAME = "::"
+
+# --- Book Content ---
+# Controls where book content is sourced and where it lives at runtime.
+BOOK_SOURCE_MODE = "external"
+BOOK_SOURCE_DIR = "/data/book-source"
+BOOK_IMPORT_MANIFEST = "/data/book-source/manifest.json"
+BOOK_CANONICAL_COLLECTION = "book_sections"
+BOOK_TOC_COLLECTION = "book_toc"
+BOOK_IMPORT_ENABLED = "false"
+BOOK_IMPORT_DRY_RUN = "true"
+
+# =============================================================================
+# The following variables MUST be set in Railway Template Composer (dashboard)
+# because they use template functions or cross-service references:
+#
+# MONGODB_URI                 = mongodb://${{openclaw-core.RAILWAY_PRIVATE_DOMAIN}}:27017/openclaw
+#   → Connects to embedded MongoDB in core service via Railway private networking.
+#
+# INTERNAL_CORE_BASE_URL      = http://${{openclaw-core.RAILWAY_PRIVATE_DOMAIN}}:${{openclaw-core.PORT}}
+#   → Internal URL to reach the core service API.
+#
+# INTERNAL_SERVICE_TOKEN      = ${{shared.INTERNAL_SERVICE_TOKEN}}
+#   → Shared secret for web↔core auth. Must match on both services.
+#   → Create a Shared Variable in the template composer.
+#
+# AUTH_SECRET                 = ${{secret(43, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")}}=
+#   → NextAuth.js session encryption key. Equivalent to openssl rand -base64 32.
+#
+# AUTH_URL                    = https://${{RAILWAY_PUBLIC_DOMAIN}}
+#   → Public URL for NextAuth.js callbacks.
+#
+# NEXT_PUBLIC_APP_URL         = https://${{RAILWAY_PUBLIC_DOMAIN}}
+#   → Public URL used by server-rendered links.
+# =============================================================================

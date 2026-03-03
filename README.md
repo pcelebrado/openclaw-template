@@ -144,41 +144,21 @@ After Railway creates both services, configure these in the dashboard:
 | **Public Domain** | `web` | Settings → Networking | Generate domain (or add custom) |
 | **No Public** | `core` | Settings → Networking | Ensure NO public domain (internal only) |
 
-### 3. Set Environment Variables
+### 3. Set Environment Variables (Raw Editor Ready)
 
-Set these in Railway Variables (per service), not in code. **Never commit real secrets.**
+For non-programmer setup, use prebuilt variable files and paste them directly:
 
-#### Web Service Variables
+- `services/web/.env.railway` -> Railway `openclaw-web` -> Variables -> Raw Editor
+- `services/core/.env.railway` -> Railway `openclaw-core` -> Variables -> Raw Editor
 
-```bash
-# Database (MongoDB runs inside core service — standalone, no replica set)
-MONGODB_URI=mongodb://core.railway.internal:27017/openclaw
+These files already include:
 
-# Internal Service Communication
-INTERNAL_CORE_BASE_URL=http://core.railway.internal:8080
-INTERNAL_SERVICE_TOKEN=<generate-a-strong-random-token>
+- private-network references (`${{openclaw-core.RAILWAY_PRIVATE_DOMAIN}}`)
+- shared token wiring (`${{shared.INTERNAL_SERVICE_TOKEN}}`)
+- generated secrets (`${{secret(...)}}`)
+- all expected variable names for both services
 
-# Auth
-AUTH_SECRET=<generate-with-openssl-rand-base64-32>
-AUTH_URL=https://your-app.railway.app
-NEXT_PUBLIC_APP_URL=https://your-app.railway.app
-```
-
-#### Core Service Variables
-
-```bash
-# Must match web service
-INTERNAL_SERVICE_TOKEN=<same-token-as-web-service>
-
-# Setup & State
-SETUP_PASSWORD=<your-secure-setup-password>
-
-# SFTPGo admin credentials (set here, not in code)
-SFTPGO_DEFAULT_ADMIN_USERNAME=<your-admin-username>
-SFTPGO_DEFAULT_ADMIN_PASSWORD=<your-strong-password>
-```
-
-> Most core variables (MongoDB, OpenClaw paths, SFTPGo ports) are pre-configured in `railway.toml`. Only secrets and service tokens need manual entry.
+See `docs/RAILWAY_VARIABLES_RAW_EDITOR.md` for the exact click path.
 
 ### 4. Deploy and Verify
 
@@ -371,6 +351,7 @@ See `docs/PREDEPLOY_NEXT_STEPS.md` for the full deployment checklist.
 | Document | Purpose |
 |----------|---------|
 | `docs/PREDEPLOY_NEXT_STEPS.md` | Deployment checklist and secrets wiring map |
+| `docs/RAILWAY_VARIABLES_RAW_EDITOR.md` | Copy/paste env setup for Railway Raw Editor |
 | `docs/SSH_SFTPGO_GO_LIVE.md` | SFTP configuration and go-live checks |
 | `services/*/README.md` | Service-specific documentation |
 | `services/*/.env.example` | Environment variable templates |

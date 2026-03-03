@@ -33,36 +33,65 @@ restartPolicyMaxRetries = 10
 requiredMountPath = "/data"
 
 [variables]
-# NOTE: Railway injects PORT automatically.
-# The service should listen on 0.0.0.0:$PORT or ::$PORT for healthchecks to work.
-# Do not hardcode PORT here to avoid domain routing mismatches.
+# =============================================================================
+# All variables below are injected into every deployment of this service.
+# Secrets and cross-service references are set in the Railway Template Composer
+# (dashboard) — they use ${{...}} syntax which railway.toml cannot express.
+# =============================================================================
+
+# --- OpenClaw State & Workspace ---
+# Where OpenClaw stores configs, auth, sessions on the persistent volume.
 OPENCLAW_STATE_DIR = "/data/.openclaw"
+# Where files created via OpenClaw will reside on the persistent volume.
 OPENCLAW_WORKSPACE_DIR = "/data/workspace"
 
-# Volume permissions: volumes are mounted as root, so non-root containers
-# need this to access the volume properly.
+# --- Volume Permissions ---
+# Railway volumes mount as root. This ensures the container can access /data.
 RAILWAY_RUN_UID = "0"
 
-# Embedded MongoDB configuration.
-# MongoDB runs inside this container and listens on all interfaces (IPv6+IPv4).
-# The web service connects via Railway private networking: core.railway.internal:27017
-# Railway private networking requires IPv6 binding (::) for service discovery.
+# --- Embedded MongoDB ---
+# MongoDB runs inside this container on all interfaces (IPv6+IPv4).
+# Web service connects via Railway private networking: openclaw-core.railway.internal:27017
 MONGO_PORT = "27017"
 MONGO_BIND_IP = "::,0.0.0.0"
 MONGODB_URI = "mongodb://127.0.0.1:27017/openclaw"
 
-# Embedded SFTPGo configuration.
+# --- Embedded SFTPGo ---
 # SFTP on port 2022 — enable TCP Proxy in Railway dashboard to expose externally.
-# Web admin on port 2080 (internal only — accessible via private networking).
-# Set SFTPGO_DEFAULT_ADMIN_USERNAME and SFTPGO_DEFAULT_ADMIN_PASSWORD in Railway
-# Variables (not here) to create the initial admin account on first boot.
+# Web admin on port 2080 (internal only via private networking).
 SFTPGO_ENABLED = "true"
 SFTPGO_DATA_ROOT = "/data/sftpgo"
 SFTPGO_SFTPD__BINDINGS__0__PORT = "2022"
 SFTPGO_HTTPD__BINDINGS__0__PORT = "2080"
 SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN = "true"
+# Default SFTPGo admin credentials (change in Railway Variables for production).
+SFTPGO_DEFAULT_ADMIN_USERNAME = "admin"
 
-# Internal service auth token.
-# Must match the value set on the web service as INTERNAL_SERVICE_TOKEN.
-# All /internal/* endpoints MUST verify this token.
-# INTERNAL_SERVICE_TOKEN = "set-in-railway-variables-not-here"
+# --- Book Content ---
+# Controls where book content is sourced and staged before import.
+BOOK_SOURCE_MODE = "external"
+BOOK_SOURCE_DIR = "/data/book-source"
+BOOK_IMPORT_MANIFEST = "/data/book-source/manifest.json"
+BOOK_CANONICAL_COLLECTION = "book_sections"
+BOOK_TOC_COLLECTION = "book_toc"
+BOOK_IMPORT_ENABLED = "false"
+BOOK_IMPORT_DRY_RUN = "true"
+
+# =============================================================================
+# The following variables MUST be set in Railway Template Composer (dashboard)
+# because they use template functions or cross-service references:
+#
+# SETUP_PASSWORD              = (REQUIRED — user must set at deploy time)
+#   → Protects the /setup UI from the rest of the world. Leave the default
+#   → empty in the template composer so the user is prompted to set it.
+#
+# OPENCLAW_GATEWAY_TOKEN      = ${{secret(64, "abcdef0123456789")}}
+#   → Token that protects the OpenClaw gateway. Auto-generated.
+#
+# INTERNAL_SERVICE_TOKEN      = ${{shared.INTERNAL_SERVICE_TOKEN}}
+#   → Shared secret for web↔core auth. Must match on both services.
+#   → Create a Shared Variable in the template composer.
+#
+# SFTPGO_DEFAULT_ADMIN_PASSWORD = ${{secret(24, "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")}}
+#   → Auto-generated password for SFTPGo admin.
+# =============================================================================
