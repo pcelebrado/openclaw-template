@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * OpenClaw Calm Research UI baseline.
+ * Design system baseline — see docs/DESIGN_SYSTEM.md and docs/STYLE_GUIDE.md
+ *
+ * Principles:
+ * - Editorial first: typography and rhythm carry the design
+ * - Calm density: information-rich but never cramped
+ * - Quiet chrome: minimal borders, subtle surfaces
+ * - One accent color for focus, links, active states
+ */
+
+@layer base {
+  :root {
+    /* Neutral palette — quiet surfaces */
+    --color-bg: 255 255 255;
+    --color-fg: 23 23 23;
+    --color-muted: 115 115 115;
+    --color-border: 229 229 229;
+    --color-surface: 250 250 250;
+
+    /* Single accent — restrained, used for links/focus/active only */
+    --color-accent: 37 99 235;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: 10 10 10;
+      --color-fg: 245 245 245;
+      --color-muted: 163 163 163;
+      --color-border: 38 38 38;
+      --color-surface: 23 23 23;
+      --color-accent: 96 165 250;
+    }
+  }
+
+  body {
+    background-color: rgb(var(--color-bg));
+    color: rgb(var(--color-fg));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
