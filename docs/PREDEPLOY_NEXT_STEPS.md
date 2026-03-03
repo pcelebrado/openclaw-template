@@ -69,6 +69,13 @@ Set these values in Railway Variables (service-level), not in git.
   - `BOOK_TOC_COLLECTION`
   - `BOOK_IMPORT_ENABLED`
   - `BOOK_IMPORT_DRY_RUN`
+- Embedded SFTPGo (auto-configured, credentials MUST be set in Railway Variables):
+  - `SFTPGO_ENABLED=true`
+  - `SFTPGO_DEFAULT_ADMIN_USERNAME` — **set in Railway dashboard**
+  - `SFTPGO_DEFAULT_ADMIN_PASSWORD` — **set in Railway dashboard**
+  - `SFTPGO_DATA_ROOT=/data/sftpgo`
+  - `SFTPGO_SFTPD__BINDINGS__0__PORT=2022`
+  - `SFTPGO_HTTPD__BINDINGS__0__PORT=2080`
 
 ## Deterministic next steps before deployment
 
@@ -87,19 +94,39 @@ Set these values in Railway Variables (service-level), not in git.
 | Path | Purpose | Estimated Size |
 |------|---------|---------------|
 | `/data/db` | MongoDB data files | ~50-200MB |
-| `/data/log` | MongoDB logs | ~5-10MB |
+| `/data/log` | MongoDB + SFTPGo logs | ~5-10MB |
 | `/data/.openclaw` | OpenClaw config, credentials, tokens | ~1MB |
 | `/data/workspace` | OpenClaw workspace (skills, plugins) | ~10-50MB |
 | `/data/book-source` | Staged book content for import | ~10-100MB |
 | `/data/npm`, `/data/pnpm` | Persistent tool installs | ~10-50MB |
-| **Total** | | **~100-400MB** |
+| `/data/sftpgo` | SFTPGo state, host keys, user DB | ~5-10MB |
+| **Total** | | **~100-420MB** |
 
 > Keep content imports small. For large books, import only the active sections.
-> MongoDB's WiredTiger cache is capped at 128MB RAM to leave room for Node.js.
+> MongoDB's WiredTiger cache is capped at 128MB RAM to leave room for Node.js + SFTPGo.
 
-## Optional integrations
+## SFTPGo (embedded in core)
 
-- SFTPGo scaffold is included in `services/sftpgo/` for SSH/SFTP file ingress.
-  On the free plan, SFTPGo would require the same volume — run it only if you
-  have a paid plan with multiple volumes.
+SFTPGo runs inside the core container for book content upload via SFTP.
+
+**Ports:**
+- SFTP: port `2022` — enable **TCP Proxy** in Railway dashboard → Settings → Networking
+- Web Admin: port `2080` — internal only (reachable via private networking or Railway shell)
+
+**Required Railway Variables (set in dashboard, not git):**
+- `SFTPGO_DEFAULT_ADMIN_USERNAME` — admin login for web UI
+- `SFTPGO_DEFAULT_ADMIN_PASSWORD` — strong password for admin
+
+**First-time setup:**
+1. Deploy the core service
+2. In Railway dashboard: core service → Settings → Networking → TCP Proxy → port `2022`
+3. Railway gives you `roundhouse.proxy.rlwy.net:XXXXX` — that's your SFTP endpoint
+4. Connect: `sftp -P XXXXX your-admin-user@roundhouse.proxy.rlwy.net`
+5. Upload book content to the home directory (maps to `/data/sftpgo/srv/`)
+6. Create an SFTPGo user via web admin (port 2080 internally) with home dir `/data/book-source`
+
+**Disable SFTPGo:** Set `SFTPGO_ENABLED=false` in Railway Variables.
+
+## Other integrations
+
 - QMD is consumed through OpenClaw core runtime behavior; data persists on the volume.

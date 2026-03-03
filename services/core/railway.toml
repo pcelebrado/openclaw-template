@@ -1,10 +1,10 @@
 # =============================================================================
-# OpenClaw Core Service - Railway Configuration
-# CONSOLIDATED SERVICE: OpenClaw + MongoDB + QMD
+# OpenClaw Core Service - Railway Configuration (MVP)
+# CONSOLIDATED SERVICE: OpenClaw + MongoDB + QMD + SFTPGo
 # Monorepo path contract: service root directory must be `services/core`.
 # If using custom config file path in Railway, set `/services/core/railway.toml`.
 # =============================================================================
-# This service runs OpenClaw, QMD, and an embedded MongoDB instance.
+# This service runs OpenClaw, QMD, embedded MongoDB, and SFTPGo.
 # All persistent data is stored on a single Railway volume at /data (500MB).
 # =============================================================================
 
@@ -24,10 +24,11 @@ restartPolicyType = "on_failure"
 # Require a persistent volume mounted at /data (Railway).
 # Volume layout:
 #   /data/db          — MongoDB data files
-#   /data/log         — MongoDB logs
+#   /data/log         — MongoDB + SFTPGo logs
 #   /data/.openclaw   — OpenClaw state and config
 #   /data/workspace   — OpenClaw workspace
 #   /data/book-source — Book content staging (optional)
+#   /data/sftpgo      — SFTPGo state, host keys, user data
 requiredMountPath = "/data"
 
 [variables]
@@ -48,6 +49,17 @@ RAILWAY_RUN_UID = "0"
 MONGO_PORT = "27017"
 MONGO_BIND_IP = "::,0.0.0.0"
 MONGODB_URI = "mongodb://127.0.0.1:27017/openclaw"
+
+# Embedded SFTPGo configuration.
+# SFTP on port 2022 — enable TCP Proxy in Railway dashboard to expose externally.
+# Web admin on port 2080 (internal only — accessible via private networking).
+# Set SFTPGO_DEFAULT_ADMIN_USERNAME and SFTPGO_DEFAULT_ADMIN_PASSWORD in Railway
+# Variables (not here) to create the initial admin account on first boot.
+SFTPGO_ENABLED = "true"
+SFTPGO_DATA_ROOT = "/data/sftpgo"
+SFTPGO_SFTPD__BINDINGS__0__PORT = "2022"
+SFTPGO_HTTPD__BINDINGS__0__PORT = "2080"
+SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN = "true"
 
 # Internal service auth token.
 # Must match the value set on the web service as INTERNAL_SERVICE_TOKEN.
