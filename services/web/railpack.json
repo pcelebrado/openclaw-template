@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  
+  "steps": {
+    "build": {
+      "variables": {
+        "NEXT_TELEMETRY_DISABLED": "1"
+      },
+      "commands": ["npm run build"]
+    }
+  },
+  
+  "deploy": {
+    "variables": {
+      "NODE_ENV": "production",
+      "HOSTNAME": "::",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "PORT": "3000"
+    },
+    "startCommand": "next start --hostname :: --port ${PORT:-3000}"
+  }
+}

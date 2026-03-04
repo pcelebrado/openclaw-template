@@ -4,5 +4,15 @@
   "workspaces": [
     "services/web",
     "services/core"
-  ]
+  ],
+  "scripts": {
+    "build": "echo 'Root build - delegates to workspace builds'",
+    "start": "echo 'Root start - use services/web or services/core'",
+    "dev:web": "cd services/web && npm run dev",
+    "dev:core": "cd services/core && npm run dev",
+    "build:web": "cd services/web && npm run build",
+    "build:core": "cd services/core && npm run build",
+    "railpack:web": "cd services/web && railpack build .",
+    "railpack:core": "cd services/core && railpack build ."
+  }
 }
