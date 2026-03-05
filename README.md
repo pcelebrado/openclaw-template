@@ -1,6 +1,6 @@
 # OpenClaw Book Template
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github?repo=https://github.com/pcelebrado/Book-of-Openclaw&branch=book-of-alma)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github?repo=https://github.com/pcelebrado/Book-of-Alma)
 
 > **Give OpenClaw a Book. A topic. Let it become a master, then let it become your Teacher.**
 
@@ -199,16 +199,36 @@ Write in Markdown. The AI will index and understand it all.
 
 ## Local Development
 
-### Web Service
+### With Railway CLI (Recommended)
+
+Using the Railway CLI gives you access to your Railway environment variables locally:
+
+1. Install the [Railway CLI](https://docs.railway.app/develop/cli#installation)
+2. Login with `railway login`
+3. Link your local repo: `railway link`
+4. Start with Railway environment:
 
 ```bash
+# Web service (with Railway env vars)
 cd services/web
+railway run npm run dev
+
+# Open http://localhost:3000
+```
+
+### Without Railway CLI
+
+```bash
+# Web service
+cd services/web
+cp .env.example .env.local   # Edit with your local values
 npm install
 npm run dev
 ```
 
 Production build check:
 ```bash
+cd services/web
 npm run build
 ```
 

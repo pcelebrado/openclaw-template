@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/services/web'
+    schedule:
+      interval: weekly
+    groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      next:
+        patterns:
+          - "next"
+          - "next-*"
+          - "eslint-config-next"
+  - package-ecosystem: npm
+    directory: '/services/core'
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: '/services/web'
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker
+    directory: '/services/core'
+    schedule:
+      interval: monthly
