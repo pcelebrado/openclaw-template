@@ -754,6 +754,21 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
       OPENCLAW_NODE,
       clawArgs(["config", "set", "--json", "gateway.trustedProxies", JSON.stringify(["127.0.0.1"]) ]),
     );
+    await runCmd(
+      OPENCLAW_NODE,
+      clawArgs(["config", "set", "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback", "false"])
+    );
+    await runCmd(
+      OPENCLAW_NODE,
+      clawArgs(["config", "set", "gateway.controlUi.allowInsecureAuth", "false"])
+    );
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null);
+    if (appUrl) {
+      await runCmd(
+        OPENCLAW_NODE,
+        clawArgs(["config", "set", "gateway.publicUrl", appUrl])
+      );
+    }
 
     // Optional: configure a custom OpenAI-compatible provider (base URL) for advanced users.
     if (payload.customProviderId?.trim() && payload.customProviderBaseUrl?.trim()) {
@@ -804,7 +819,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
           enabled: true,
           dmPolicy: "pairing",
           botToken: token,
-          groupPolicy: "allowlist",
+          groupPolicy: "open",
           streamMode: "partial",
         };
         const set = await runCmd(
@@ -830,7 +845,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
         const cfgObj = {
           enabled: true,
           token,
-          groupPolicy: "allowlist",
+          groupPolicy: "open",
           dm: {
             policy: "pairing",
           },
