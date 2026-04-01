@@ -22,7 +22,7 @@
 # =============================================================================
 # Stage 1a: Pull SFTPGo binary from official image
 # =============================================================================
-FROM drakkan/sftpgo:v2.7.0-slim AS sftpgo-bin
+FROM drakkan/sftpgo:v2.7.1-slim AS sftpgo-bin
 
 # =============================================================================
 # Stage 1b: Build OpenClaw from source
